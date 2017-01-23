@@ -1,0 +1,18 @@
+package: kubeup.com/aliyun-controller
+ignore:
+- net
+- net/mail
+- net/rpc
+- net/http
+- net/url
+- net/http/pprof
+import:
+- package: github.com/denverdino/aliyungo
+  subpackages:
+  - common
+  - ecs
+  - slb
+- package: github.com/golang/glog
+- package: golang.org/x/net
+  subpackages:
+  - context
