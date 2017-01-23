@@ -1,13 +1,13 @@
 package aliyun
 
 import (
-	"os"
-
 	"github.com/denverdino/aliyungo/common"
 	"github.com/denverdino/aliyungo/ecs"
 	"github.com/denverdino/aliyungo/slb"
+	log "github.com/golang/glog"
 	origcloudprovider "k8s.io/kubernetes/pkg/cloudprovider"
 	"kubeup.com/aliyun-controller/pkg/cloudprovider"
+	"os"
 )
 
 const (
@@ -28,8 +28,6 @@ type AliyunProvider struct {
 
 	client    *ecs.Client
 	slbClient *slb.Client
-
-	OverwriteMismatch bool
 }
 
 var _ origcloudprovider.Interface = &AliyunProvider{}
@@ -43,18 +41,29 @@ func NewProvider() cloudprovider.Provider {
 	accessKeySecret := os.Getenv("ALIYUN_ACCESS_KEY_SECRET")
 
 	p := &AliyunProvider{
-		client:       ecs.NewClient(accessKey, accessKeySecret),
-		slbClient:    slb.NewClient(accessKey, accessKeySecret),
-		region:       os.Getenv("ALIYUN_REGION"),
-		vpcID:        os.Getenv("ALIYUN_VPC"),
-		vrouterID:    os.Getenv("ALIYUN_ROUTER"),
-		vswitch:      os.Getenv("ALIYUN_VSWITCH"),
-		routeTable:   os.Getenv("ALIYUN_ROUTE_TABLE"),
-		loadbalancer: os.Getenv("ALIYUN_LOADBALANCER"),
-		instance:     os.Getenv("VPSID"),
-
-		OverwriteMismatch: true,
+		client:     ecs.NewClient(accessKey, accessKeySecret),
+		slbClient:  slb.NewClient(accessKey, accessKeySecret),
+		region:     os.Getenv("ALIYUN_REGION"),
+		vpcID:      os.Getenv("ALIYUN_VPC"),
+		vrouterID:  os.Getenv("ALIYUN_ROUTER"),
+		vswitch:    os.Getenv("ALIYUN_VSWITCH"),
+		routeTable: os.Getenv("ALIYUN_ROUTE_TABLE"),
+		instance:   os.Getenv("ALIYUN_INSTANCE"),
 	}
+
+	if accessKey == "" || accessKeySecret == "" {
+		panic("ALIYUN_ACCESS_KEY && ALIYUN_ACCESS_KEY_SECRET are required")
+	}
+
+	if p.region == "" || p.vpcID == "" || p.vrouterID == "" || p.routeTable == "" {
+		log.Warningf(`ALIYUN_REGION, ALIYUN_VPC, ALIYUN_ROUTER, ALIYUN_VSWITCH, ALIYUN_ROUTE_TABLE
+		are required for service and route controllers`)
+	}
+
+	if p.instance == "" {
+		log.Warningf("ALIYUN_REGION, ALIYUN_INSTANCE are required for flexv")
+	}
+
 	return p
 }
 
@@ -101,7 +110,7 @@ func (p *AliyunProvider) Clusters() (origcloudprovider.Clusters, bool) {
 }
 
 func (p *AliyunProvider) Zones() (origcloudprovider.Zones, bool) {
-	return p, false
+	return p, true
 }
 
 func (p *AliyunProvider) Instances() (origcloudprovider.Instances, bool) {

@@ -5,6 +5,7 @@ import (
 	log "github.com/golang/glog"
 	pflag "github.com/spf13/pflag"
 	"k8s.io/kubernetes/pkg/util/flag"
+	"k8s.io/kubernetes/pkg/util/logs"
 	_ "kubeup.com/aliyun-controller/pkg/cloudprovider/providers"
 	"kubeup.com/aliyun-controller/pkg/controller"
 	"net"
@@ -25,6 +26,8 @@ func main() {
 	//pflag.AddGoFlagSet(goflag.CommandLine)
 	options.AddFlags(pflag.CommandLine)
 	flag.InitFlags()
+	logs.InitLogs()
+	defer logs.FlushLogs()
 
 	if *test {
 		return

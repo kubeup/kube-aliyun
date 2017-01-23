@@ -40,9 +40,14 @@ func (w *AliyunProvider) ListRoutes(clusterName string) (routes []*origcloudprov
 
 	for _, t := range tables {
 		for _, r := range t.RouteEntrys.RouteEntry {
-			ip, ok := id2ip[r.NextHopId]
+			if r.NextHopType != string(ecs.NextHopInstance) {
+				continue
+			}
+
+			ip, ok := id2ip[r.InstanceId]
 			if !ok {
-				log.Warningf("Unable to get ip of instance: %v", r.NextHopId)
+				log.Warningf("Unable to get ip of instance: %+v", r)
+				log.Warningf("%+v", id2ip)
 				continue
 			}
 
@@ -111,7 +116,6 @@ func (w *AliyunProvider) CreateRoute(clusterName string, nameHint string, route 
 	}
 
 	err = w.client.CreateRouteEntry(args)
-	// TODO: already there
 	if err != nil {
 		log.Warningf("Unable to add vpc route for %s (subnet: %s): %+v", instanceId, route.DestinationCIDR, err)
 	}

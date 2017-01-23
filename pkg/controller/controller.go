@@ -24,6 +24,7 @@ import (
 
 type Options struct {
 	Name                     string
+	Kubeconfig               string
 	ClusterCIDR              string
 	InCluster                bool
 	ConcurrentServiceSyncs   int
@@ -42,6 +43,7 @@ func (o *Options) AddFlags(ps *pflag.FlagSet) {
 	ps.IntVar(&o.ConcurrentServiceSyncs, "concurrent-service-syncs", 3, "Concurrent service syncs")
 	ps.DurationVar(&o.ShutdownGracePeriod.Duration, "shutdown-grace-period", 3*time.Second, "Shutdown grace period")
 	ps.DurationVar(&o.RouteReconcilationPeriod.Duration, "route-reconcilation-period", 30*time.Second, "Route reconcilation period")
+	ps.StringVar(&o.Kubeconfig, "kubeconfig", o.Kubeconfig, "Path to kubeconfig file with authorization and master location information.")
 
 	leaderelection.BindFlags(&o.LeaderElection, ps)
 	overrideFlags := clientcmd.RecommendedConfigOverrideFlags("")
@@ -76,6 +78,8 @@ func NewController(options *Options) (*Controller, error) {
 	// Create kubeconfig
 	if options.InCluster {
 		clientConfig, err = restclient.InClusterConfig()
+	} else if options.Kubeconfig != "" {
+		clientConfig, err = clientcmd.BuildConfigFromFlags(options.Overrides.ClusterInfo.Server, options.Kubeconfig)
 	} else {
 		kubeconfig := clientcmd.NewDefaultClientConfig(*clientcmdapi.NewConfig(), &options.Overrides)
 		clientConfig, err = kubeconfig.ClientConfig()
