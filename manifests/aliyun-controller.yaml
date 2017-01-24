@@ -7,7 +7,7 @@ spec:
   hostNetwork: true
   containers:
   - name: aliyun-controller
-    image: kubeup.com/aliyun-controller
+    image: kubeup/kube-aliyun
     command:
     - /aliyun-controller
     - --master=http://127.0.0.1:8080

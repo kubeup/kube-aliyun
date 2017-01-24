@@ -1,7 +1,7 @@
 GO    := GO15VENDOREXPERIMENT=1 go
 pkgs   = $(shell $(GO) list ./... | grep -v /vendor/)
 
-DOCKER_IMAGE_NAME       ?= aliyun
+DOCKER_IMAGE_NAME       ?= kube-aliyun
 DOCKER_IMAGE_TAG        ?= $(subst /,-,$(shell git rev-parse --abbrev-ref HEAD))
 
 all: format test

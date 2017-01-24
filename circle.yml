@@ -1,6 +1,6 @@
 machine:
   environment:
-    DOCKER_IMAGE_NAME: kubeup/aliyun
+    DOCKER_IMAGE_NAME: kubeup/kube-aliyun
   pre:
     - sudo curl -L -o /usr/bin/docker 'https://s3-external-1.amazonaws.com/circle-downloads/docker-1.9.1-circleci'
     - sudo chmod 0755 /usr/bin/docker
@@ -13,9 +13,9 @@ dependencies:
     - docker info
   override:
     - mkdir -p $HOME/.go_workspace/src/kubeup.com
-    - ln -sf $HOME/$CIRCLE_PROJECT_REPONAME $HOME/.go_workspace/src/kubeup.com/aliyun-controller
-    - CGO_ENABLED=0 GOOS=linux go build -installsuffix cgo -o aliyun-controller kubeup.com/aliyun-controller/cmd/aliyun-controller
-    - CGO_ENABLED=0 GOOS=linux go build -installsuffix cgo -o aliyun-flexv kubeup.com/aliyun-controller/cmd/aliyun-flexv
+    - ln -sf $HOME/$CIRCLE_PROJECT_REPONAME $HOME/.go_workspace/src/kubeup.com/kube-aliyun
+    - CGO_ENABLED=0 GOOS=linux go build -installsuffix cgo -o aliyun-controller kubeup.com/kube-aliyun/cmd/aliyun-controller
+    - CGO_ENABLED=0 GOOS=linux go build -installsuffix cgo -o flexv kubeup.com/kube-aliyun/cmd/aliyun-flexv
     - |
       if [ -n "$CIRCLE_TAG" ]; then
         make docker DOCKER_IMAGE_NAME=$DOCKER_IMAGE_NAME DOCKER_IMAGE_TAG=$CIRCLE_TAG
