@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: aliyun-controller
+  namespace: kube-system
+spec:
+  hostNetwork: true
+  containers:
+  - name: aliyun-controller
+    image: kubeup.com/aliyun-controller
+    command:
+    - /aliyun-controller
+    - --master=http://127.0.0.1:8080
+    - --leader-elect=true
+    - --cluster-cidr=YOUR_CLUSTER_CIDR
+    env:
+    - name: ALIYUN_ACCESS_KEY
+      value: YOUR_ALIYUN_ACCESS_KEY
+    - name: ALIYUN_ACCESS_KEY_SECRET
+      value: YOUR_ALIYUN_ACCESS_KEY_SECRET
+    - name: ALIYUN_REGION
+      value: YOUR_ALIYUN_REGION
+    - name: ALIYUN_VPC
+      value: YOUR_ALIYUN_VPC_ID
+    - name: ALIYUN_ROUTER
+      value: YOUR_ALIYUN_ROUTER_ID
+    - name: ALIYUN_ROUTE_TABLE
+      value: YOUR_ALIYUN_ROUTE_TABLE_ID
+    - name: ALIYUN_VSWITCH
+      value: YOUR_ALIYUN_VSWITCH_ID
+
