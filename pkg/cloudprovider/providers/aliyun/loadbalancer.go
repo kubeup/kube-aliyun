@@ -31,20 +31,15 @@ import (
 )
 
 type AliyunLoadBalancerOptions struct {
-	InternetChargeType string `k8s:"internet-charge-type"`
-	Bandwidth          int    `k8s:"bandwidth"`
+	InternetChargeType  string `k8s:"internet-charge-type"`
+	Bandwidth           int    `k8s:"bandwidth"`
+	HealthyThreshold    int    `k8s:"healthy-threshold"`
+	UnhealthyThreshold  int    `k8s:"unhealthy-threshold"`
+	HealthCheckTimeout  int    `k8s:"health-check-timeout"`
+	HealthCheckInterval int    `k8s:"health-check-interval"`
 }
 
 // Loadbalancer helpers
-func isNotFound(err error) bool {
-	e, ok := err.(*common.Error)
-	if !ok {
-		return false
-	}
-
-	return e.StatusCode == 404 || strings.Index(strings.ToLower(e.Message), "not found") > -1
-}
-
 func lbToStatus(lb *slb.LoadBalancerType) *api.LoadBalancerStatus {
 	return &api.LoadBalancerStatus{
 		[]api.LoadBalancerIngress{
@@ -53,9 +48,6 @@ func lbToStatus(lb *slb.LoadBalancerType) *api.LoadBalancerStatus {
 			},
 		},
 	}
-}
-
-func (p *AliyunProvider) hostsToInstances(hosts string) {
 }
 
 // Loadbalancer interface
@@ -222,7 +214,7 @@ func (p *AliyunProvider) EnsureLoadBalancer(clusterName string, service *api.Ser
 	}
 
 	// Sync lb
-	err = p.ensureLBListeners(lb, spec.Ports)
+	err = p.ensureLBListeners(lb, spec.Ports, lbOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -258,7 +250,7 @@ func (p *AliyunProvider) getLBListenerAttributes(lb *slb.LoadBalancerType, pp *s
 	return
 }
 
-func (p *AliyunProvider) ensureLBListeners(lb *slb.LoadBalancerType, ports []api.ServicePort) error {
+func (p *AliyunProvider) ensureLBListeners(lb *slb.LoadBalancerType, ports []api.ServicePort, options *AliyunLoadBalancerOptions) error {
 	keyFmt := "%d|%s"
 	expected := make(map[string]api.ServicePort)
 	actual := lb.ListenerPortsAndProtocol.ListenerPortAndProtocol[:]
@@ -324,32 +316,29 @@ func (p *AliyunProvider) ensureLBListeners(lb *slb.LoadBalancerType, ports []api
 			switch sp.Protocol {
 			case api.ProtocolTCP:
 				args := &slb.CreateLoadBalancerTCPListenerArgs{
-					LoadBalancerId:    lb.LoadBalancerId,
-					ListenerPort:      int(sp.Port),
-					BackendServerPort: int(sp.NodePort),
-					// TODO: Allow customizing bandwidth through annotation
-					Bandwidth:              -1,
+					LoadBalancerId:         lb.LoadBalancerId,
+					ListenerPort:           int(sp.Port),
+					BackendServerPort:      int(sp.NodePort),
+					Bandwidth:              options.Bandwidth,
 					HealthCheckType:        slb.TCPHealthCheckType,
-					HealthCheckDomain:      "",
 					HealthCheckConnectPort: int(sp.NodePort),
-					HealthyThreshold:       3,
-					UnhealthyThreshold:     3,
-					HealthCheckTimeout:     5,
-					HealthCheckInterval:    2,
+					HealthyThreshold:       options.HealthyThreshold,
+					UnhealthyThreshold:     options.UnhealthyThreshold,
+					HealthCheckTimeout:     options.HealthCheckTimeout,
+					HealthCheckInterval:    options.HealthCheckInterval,
 				}
 				err = p.slbClient.CreateLoadBalancerTCPListener(args)
 			case api.ProtocolUDP:
 				args := &slb.CreateLoadBalancerUDPListenerArgs{
-					LoadBalancerId:    lb.LoadBalancerId,
-					ListenerPort:      int(sp.Port),
-					BackendServerPort: int(sp.NodePort),
-					// TODO: Allow customizing bandwidth through annotation
-					Bandwidth:              -1,
+					LoadBalancerId:         lb.LoadBalancerId,
+					ListenerPort:           int(sp.Port),
+					BackendServerPort:      int(sp.NodePort),
+					Bandwidth:              options.Bandwidth,
 					HealthCheckConnectPort: int(sp.NodePort),
-					HealthyThreshold:       6,
-					UnhealthyThreshold:     6,
-					HealthCheckTimeout:     10,
-					HealthCheckInterval:    5,
+					HealthyThreshold:       options.HealthyThreshold,
+					UnhealthyThreshold:     options.UnhealthyThreshold,
+					HealthCheckTimeout:     options.HealthCheckTimeout,
+					HealthCheckInterval:    options.HealthCheckInterval,
 				}
 				err = p.slbClient.CreateLoadBalancerUDPListener(args)
 			default:
@@ -426,9 +415,17 @@ func (p *AliyunProvider) UpdateLoadBalancer(clusterName string, service *api.Ser
 		return fmt.Errorf("Load balancer is not found")
 	}
 
+	lbOptions := &AliyunLoadBalancerOptions{}
+	if service.Annotations != nil {
+		err = autil.MapToStruct(service.Annotations, lbOptions, AliyunAnnotationPrefix)
+		if err != nil {
+			log.Warningf("Unable to extract loadbalancer options from service annotations")
+		}
+	}
+
 	// Sync lb
 	log.Infof("Updating LB: %+v", lb)
-	err = p.ensureLBListeners(lb, service.Spec.Ports)
+	err = p.ensureLBListeners(lb, service.Spec.Ports, lbOptions)
 	if err != nil {
 		return err
 	}
