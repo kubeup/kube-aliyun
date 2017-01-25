@@ -38,16 +38,16 @@ Deploy to Aliyun
 
 1. Update the kubelet systemd file on every node to include these required environment variables:
 
-  ALIYUN_ACCESS_KEY
-  ALIYUN_ACCESS_KEY_SECRET
-  ALIYUN_REGION
-  ALIYUN_INSTANCE (the instance id of the node in Aliyun)
+  - ALIYUN_ACCESS_KEY
+  - ALIYUN_ACCESS_KEY_SECRET
+  - ALIYUN_REGION
+  - ALIYUN_INSTANCE (the instance id of the node in Aliyun)
   
 2. Add to kubelet commandline an option `--volume-plugin-dir=/opt/k8s/volume/plugins`
-3. Create a directory on all nodes called `/opt/k8s/volume/plugins/aliyun~flexv/`
-4. Run on each node
+3. Run on each node
 
-  cd /opt/k8s/volume/plugins/aliyun~flexv
-  docker run -v `pwd`:/opt kubeup/kube-aliyun cp /flexv /opt/
-  chmod 755 ./flexv
+```bash
+  FLEXPATH=/opt/k8s/volume/plugins/aliyun~flexv; sudo mkdir $FLEXPATH -p; docker run -v $FLEXPATH:/opt kubeup/kube-aliyun:master cp /flexv /opt/
+```
+
 
