@@ -1,3 +1,3 @@
 FROM alpine
-ADD aliyun-controller /aliyun-controlelr
+ADD aliyun-controller /aliyun-controller
 ADD flexv /flexv
