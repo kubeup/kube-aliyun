@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"kubeup.com/kube-aliyun/pkg/cloudprovider"
 	_ "kubeup.com/kube-aliyun/pkg/cloudprovider/providers"
-	"log"
 	"os"
 )
 
@@ -69,9 +68,9 @@ func main() {
 
 	// Prepare logs
 	os.MkdirAll("/opt/logs/flexv", 0750)
-	log.SetOutput(os.Stderr)
+	//log.SetOutput(os.Stderr)
 	flag.Parse()
-	flag.Set("logtostderr", "false")
+	flag.Set("logtostderr", "true")
 	flag.Set("alsologtostderr", "false")
 	flag.Set("log_dir", "/opt/logs/flexv")
 	flag.Set("stderrThreshold", "fatal")

@@ -68,16 +68,16 @@ func NewProvider() cloudprovider.Provider {
 	}
 
 	if accessKey == "" || accessKeySecret == "" {
-		panic("ALIYUN_ACCESS_KEY && ALIYUN_ACCESS_KEY_SECRET are required")
+		log.V(2).Infof("ALIYUN_ACCESS_KEY && ALIYUN_ACCESS_KEY_SECRET are required")
 	}
 
 	if p.region == "" || p.vpcID == "" || p.vrouterID == "" || p.routeTable == "" {
-		log.Warningf(`ALIYUN_REGION, ALIYUN_VPC, ALIYUN_ROUTER, ALIYUN_VSWITCH, ALIYUN_ROUTE_TABLE
+		log.V(2).Infof(`ALIYUN_REGION, ALIYUN_VPC, ALIYUN_ROUTER, ALIYUN_VSWITCH, ALIYUN_ROUTE_TABLE
 		are required for service and route controllers`)
 	}
 
 	if p.instance == "" {
-		log.Warningf("ALIYUN_REGION, ALIYUN_INSTANCE are required for flexv")
+		log.V(2).Infof("ALIYUN_REGION, ALIYUN_INSTANCE are required for flexv")
 	}
 
 	return p
