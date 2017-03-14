@@ -26,12 +26,12 @@ type SendBatchMailArgs struct {
 //please set the receiverName and template in the console of Aliyun before you call this API,if you use tagName, you should set it as well
 
 func (this *Client) SendBatchMail(args *SendBatchMailArgs) error {
-	return this.InvokeByAnyMethod(http.MethodPost, BatchSendMail, args, &common.Response{})
+	return this.InvokeByAnyMethod(http.MethodPost, BatchSendMail, "", args, &common.Response{})
 }
 
 type SendSingleMailArgs struct {
 	SendEmailArgs
-	ReplyToAddress string
+	ReplyToAddress bool
 	ToAddress      string
 	FromAlias      string
 	Subject        string
@@ -48,6 +48,6 @@ type SendSingleMailArgs struct {
 //fromAlias, subject, htmlBody, textBody are optional
 
 func (this *Client) SendSingleMail(args *SendSingleMailArgs) error {
-	return this.InvokeByAnyMethod(http.MethodPost, SingleSendMail, args, &common.Response{})
+	return this.InvokeByAnyMethod(http.MethodPost, SingleSendMail, "", args, &common.Response{})
 }
 
