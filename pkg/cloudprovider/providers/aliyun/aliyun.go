@@ -19,11 +19,15 @@ package aliyun
 import (
 	"github.com/denverdino/aliyungo/common"
 	"github.com/denverdino/aliyungo/ecs"
+	"github.com/denverdino/aliyungo/metadata"
 	"github.com/denverdino/aliyungo/slb"
 	log "github.com/golang/glog"
+	api "k8s.io/kubernetes/pkg/api/v1"
 	origcloudprovider "k8s.io/kubernetes/pkg/cloudprovider"
 	"kubeup.com/kube-aliyun/pkg/cloudprovider"
+	"net/http"
 	"os"
+	"time"
 )
 
 const (
@@ -41,9 +45,11 @@ type AliyunProvider struct {
 	routeTable      string
 	loadbalancer    string
 	instance        string
+	hostname        string
 
 	client    *ecs.Client
 	slbClient *slb.Client
+	meta      *metadata.MetaData
 }
 
 var _ origcloudprovider.Interface = &AliyunProvider{}
@@ -55,16 +61,45 @@ func init() {
 func NewProvider() cloudprovider.Provider {
 	accessKey := os.Getenv("ALIYUN_ACCESS_KEY")
 	accessKeySecret := os.Getenv("ALIYUN_ACCESS_KEY_SECRET")
+	hostname, _ := os.Hostname()
+	httpClient := &http.Client{
+		Timeout: time.Duration(3) * time.Second,
+	}
 
 	p := &AliyunProvider{
-		client:     ecs.NewClient(accessKey, accessKeySecret),
-		slbClient:  slb.NewClient(accessKey, accessKeySecret),
-		region:     os.Getenv("ALIYUN_REGION"),
-		vpcID:      os.Getenv("ALIYUN_VPC"),
-		vrouterID:  os.Getenv("ALIYUN_ROUTER"),
-		vswitch:    os.Getenv("ALIYUN_VSWITCH"),
-		routeTable: os.Getenv("ALIYUN_ROUTE_TABLE"),
-		instance:   os.Getenv("ALIYUN_INSTANCE"),
+		client:          ecs.NewClient(accessKey, accessKeySecret),
+		slbClient:       slb.NewClient(accessKey, accessKeySecret),
+		meta:            metadata.NewMetaData(httpClient),
+		region:          os.Getenv("ALIYUN_REGION"),
+		vpcID:           os.Getenv("ALIYUN_VPC"),
+		vrouterID:       os.Getenv("ALIYUN_ROUTER"),
+		vswitch:         os.Getenv("ALIYUN_VSWITCH"),
+		routeTable:      os.Getenv("ALIYUN_ROUTE_TABLE"),
+		instance:        os.Getenv("ALIYUN_INSTANCE"),
+		accessKey:       accessKey,
+		accessKeySecret: accessKeySecret,
+		hostname:        hostname,
+	}
+
+	metaFailed := false
+	if p.region == "" {
+		var err error
+		p.region, err = p.meta.Region()
+		if err != nil {
+			metaFailed = true
+		}
+	}
+
+	if p.instance == "" && !metaFailed {
+		p.instance, _ = p.meta.InstanceID()
+	}
+
+	if p.vpcID == "" && !metaFailed {
+		p.vpcID, _ = p.meta.VpcID()
+	}
+
+	if p.vswitch == "" && !metaFailed {
+		p.vswitch, _ = p.meta.VswitchID()
 	}
 
 	if accessKey == "" || accessKeySecret == "" {
@@ -81,6 +116,14 @@ func NewProvider() cloudprovider.Provider {
 	}
 
 	return p
+}
+
+func (w *AliyunProvider) authorized() bool {
+	return w.accessKey != "" && w.accessKeySecret != ""
+}
+
+func (w *AliyunProvider) isLocal(node string) bool {
+	return node == "localhost" || node == w.hostname
 }
 
 func (w *AliyunProvider) getInstanceIP2ID() (ip2id map[string]string, err error) {
@@ -119,6 +162,53 @@ func (w *AliyunProvider) getInstanceID2IP() (id2ip map[string]string, err error)
 		}
 	}
 	return
+}
+
+func (p *AliyunProvider) getInstanceIdsByNodeNames(nodes []string) (instances []string, err error) {
+	args := &ecs.DescribeInstancesArgs{
+		RegionId: common.Region(p.region),
+		VpcId:    p.vpcID,
+	}
+	results, _, err := p.client.DescribeInstances(args)
+	if err != nil {
+		return
+	}
+
+	// Match hostnames and all ip addresses
+	instanceMap := make(map[string]string)
+	for _, i := range results {
+		id := i.InstanceId
+		instanceMap[i.HostName] = id
+
+		for _, ip := range i.VpcAttributes.PrivateIpAddress.IpAddress {
+			instanceMap[ip] = id
+		}
+
+		for _, ip := range i.PublicIpAddress.IpAddress {
+			instanceMap[ip] = id
+		}
+
+		if i.EipAddress.IpAddress != "" {
+			instanceMap[i.EipAddress.IpAddress] = id
+		}
+	}
+
+	for _, node := range nodes {
+		if id, ok := instanceMap[node]; ok {
+			instances = append(instances, id)
+		}
+	}
+
+	return
+}
+
+func (p *AliyunProvider) getInstanceIdsByNodes(nodes []*api.Node) (instances []string, err error) {
+	names := []string{}
+	for _, node := range nodes {
+		names = append(names, node.Name)
+	}
+
+	return p.getInstanceIdsByNodeNames(names)
 }
 
 func (p *AliyunProvider) Clusters() (origcloudprovider.Clusters, bool) {

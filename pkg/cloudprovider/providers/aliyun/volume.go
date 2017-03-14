@@ -28,22 +28,29 @@ import (
 	"strings"
 	//"syscall"
 	"kubeup.com/kube-aliyun/pkg/cloudprovider"
+	"time"
 )
 
 var (
 	letters     = "abcdefghijklmnopqrstuvwxyz"
-	localPrefix = "/dev/xvd"
+	apiPrefix   = "/dev/xvd"
+	localPrefix = "/dev/vd"
+
+	WaitInterval         = time.Second
+	WaitForAttachTimeout = 10 * time.Second
 )
+
+var _ cloudprovider.Volume = &AliyunProvider{}
 
 // TODO: Use nil as success result
 
 // Aliyun api only takes /dev/xvd? even though it's actuall vd? in coreos system
 func deviceApi2Local(s string) string {
-	return strings.Replace(s, "/dev/xvd", localPrefix, 1)
+	return strings.Replace(s, apiPrefix, localPrefix, 1)
 }
 
 func deviceLocal2Api(s string) string {
-	return strings.Replace(s, localPrefix, "/dev/xvd", 1)
+	return strings.Replace(s, localPrefix, apiPrefix, 1)
 }
 
 func probeLocalDevicePath() error {
@@ -80,7 +87,6 @@ func (p *AliyunProvider) getDiskById(diskId string) (d ecs.DiskItemType, err err
 
 	args := &ecs.DescribeDisksArgs{
 		RegionId:   common.Region(p.region),
-		InstanceId: p.instance,
 		DiskIds:    []string{diskId},
 		Pagination: *pg,
 	}
@@ -94,11 +100,11 @@ func (p *AliyunProvider) getDiskById(diskId string) (d ecs.DiskItemType, err err
 		return
 	}
 
-	err = errors.New(fmt.Sprintf("DiskId %s is not found with this instance", diskId))
+	err = errors.New(fmt.Sprintf("DiskId %s is not found", diskId))
 	return
 }
 
-func (p *AliyunProvider) getDiskByDevice(device string) (d ecs.DiskItemType, err error) {
+func (p *AliyunProvider) getDiskByDevice(instanceId, device string) (d ecs.DiskItemType, err error) {
 	pg := &common.Pagination{
 		PageNumber: 0,
 		PageSize:   50,
@@ -106,7 +112,7 @@ func (p *AliyunProvider) getDiskByDevice(device string) (d ecs.DiskItemType, err
 	for {
 		args := &ecs.DescribeDisksArgs{
 			RegionId:   common.Region(p.region),
-			InstanceId: p.instance,
+			InstanceId: instanceId,
 			Pagination: *pg,
 		}
 		disks, pgr, err := p.client.DescribeDisks(args)
@@ -134,13 +140,18 @@ func (p *AliyunProvider) Init() error {
 	return cloudprovider.VolumeSuccess
 }
 
-func (p *AliyunProvider) Attach(options cloudprovider.VolumeOptions) error {
-	if err := probeLocalDevicePath(); err != nil {
-		return err
+func (p *AliyunProvider) Attach(options cloudprovider.VolumeOptions, node string) error {
+	instance := p.instance
+	if node != "" {
+		instances, err := p.getInstanceIdsByNodeNames([]string{node})
+		if len(instances) == 0 {
+			return cloudprovider.NewVolumeError("Can't get instanceId for node: %v %v", node, err)
+		}
+		instance = instances[0]
 	}
 
-	if p.instance == "" {
-		return cloudprovider.NewVolumeError("instanceId is required")
+	if instance == "" {
+		return cloudprovider.NewVolumeError("Failed to attach. No ALIYUN_INSTANCE is set and no node is provided.")
 	}
 
 	diskId, _ := options["diskId"].(string)
@@ -149,62 +160,59 @@ func (p *AliyunProvider) Attach(options cloudprovider.VolumeOptions) error {
 	}
 
 	// Optional
-	device, _ := options["device"].(string)
 	deleteWithInstance, _ := options["deleteWithInstance"].(bool)
-
-	if device == "" {
-		device = getAvailableDevicePath()
-		if device == "" {
-			return cloudprovider.NewVolumeError("Unable to find an available device path")
-		}
-	}
 
 	// Check if already attached
 	disk, err := p.getDiskById(diskId)
-	if err == nil && disk.InstanceId == p.instance && disk.DiskId == diskId && disk.Status == ecs.DiskStatusInUse {
+	if err == nil && disk.InstanceId == instance && disk.DiskId == diskId && disk.Status == ecs.DiskStatusInUse {
 		return cloudprovider.VolumeError{
-			Status: "Success",
-			Device: deviceApi2Local(disk.Device),
+			Status:     "Success",
+			DevicePath: deviceApi2Local(disk.Device),
 		}
 	}
 
 	args := &ecs.AttachDiskArgs{
-		InstanceId:         p.instance,
+		InstanceId:         instance,
 		DiskId:             diskId,
-		Device:             deviceLocal2Api(device),
 		DeleteWithInstance: deleteWithInstance,
 	}
 	err = p.client.AttachDisk(args)
 	if err != nil {
-		return cloudprovider.VolumeError{
-			err.Error(),
-			"Failure",
-			device,
-		}
+		return cloudprovider.NewVolumeError(err.Error())
 	}
 	region := common.Region(p.region)
 	p.client.WaitForDisk(region, diskId, ecs.DiskStatusInUse, 0)
-	return cloudprovider.VolumeError{
-		Status: "Success",
-		Device: device,
-	}
-}
 
-func (p *AliyunProvider) Detach(device string) error {
-	if err := probeLocalDevicePath(); err != nil {
-		return err
-	}
-
-	if p.instance == "" {
-		return cloudprovider.NewVolumeError("instanceId is required")
-	}
-
-	disk, err := p.getDiskByDevice(device)
+	disk, err = p.getDiskById(diskId)
 	if err != nil {
 		return cloudprovider.NewVolumeError(err.Error())
 	}
 
-	err = p.client.DetachDisk(p.instance, disk.DiskId)
+	status := cloudprovider.NewVolumeSuccess()
+	status.DevicePath = deviceApi2Local(disk.Device)
+	return status
+}
+
+func (p *AliyunProvider) Detach(device string, node string) error {
+	instance := p.instance
+	if node != "" {
+		instances, err := p.getInstanceIdsByNodeNames([]string{node})
+		if len(instances) == 0 {
+			return cloudprovider.NewVolumeError("Can't not get instanceId for node: %v %v", node, err)
+		}
+		instance = instances[0]
+	}
+
+	if instance == "" {
+		return cloudprovider.NewVolumeError("Failed to attach. No ALIYUN_INSTANCE is set and no node is provided.")
+	}
+
+	disk, err := p.getDiskByDevice(instance, device)
+	if err != nil {
+		return cloudprovider.NewVolumeError(err.Error())
+	}
+
+	err = p.client.DetachDisk(instance, disk.DiskId)
 	if err != nil {
 		return cloudprovider.NewVolumeError(err.Error())
 	}
@@ -212,7 +220,7 @@ func (p *AliyunProvider) Detach(device string) error {
 	return cloudprovider.VolumeSuccess
 }
 
-func (p *AliyunProvider) Mount(dir, device string, options cloudprovider.VolumeOptions) error {
+func (p *AliyunProvider) MountDevice(dir, device string, options cloudprovider.VolumeOptions) error {
 	if err := probeLocalDevicePath(); err != nil {
 		return err
 	}
@@ -236,11 +244,81 @@ func (p *AliyunProvider) Mount(dir, device string, options cloudprovider.VolumeO
 	return cloudprovider.VolumeSuccess
 }
 
-func (p *AliyunProvider) Unmount(dir string) error {
+func (p *AliyunProvider) UnmountDevice(dir string) error {
 	mounter := &mount.SafeFormatAndMount{Interface: mount.New(""), Runner: exec.New()}
 	err := mounter.Unmount(dir)
 	if err != nil {
 		return cloudprovider.NewVolumeError(err.Error())
 	}
 	return cloudprovider.VolumeSuccess
+}
+
+// WaitForAttach checks if the device is successfully attached on a given node.
+// If there's no way to check, return not supported (ex. when it's another node and access
+// key is not provided
+func (p *AliyunProvider) WaitForAttach(device string, options cloudprovider.VolumeOptions) error {
+	if p.authorized() {
+		diskId, _ := options["diskId"].(string)
+
+		// Wait by API
+		disk, err := p.getDiskById(diskId)
+		if err != nil {
+			return cloudprovider.NewVolumeError(err.Error())
+		}
+
+		region := common.Region(p.region)
+		err = p.client.WaitForDisk(region, disk.DiskId, ecs.DiskStatusInUse, 0)
+		if err != nil {
+			return cloudprovider.NewVolumeError(err.Error())
+		}
+
+		return cloudprovider.VolumeSuccess
+	}
+
+	// Can't check.
+	return cloudprovider.NewVolumeNotSupported("")
+}
+
+func (p *AliyunProvider) GetVolumeName(options cloudprovider.VolumeOptions) error {
+	diskId, _ := options["diskId"].(string)
+	if diskId == "" {
+		return cloudprovider.NewVolumeError("diskId is required")
+	}
+
+	status := cloudprovider.NewVolumeSuccess()
+	status.VolumeName = diskId
+	return status
+}
+
+func (p *AliyunProvider) IsAttached(options cloudprovider.VolumeOptions, node string) error {
+	if !p.authorized() {
+		return cloudprovider.NewVolumeNotSupported("Unable to check if a spec is attached without access key")
+	}
+
+	// localhost is passed in flexvolume tests. Not sure if this will happen in real life?
+	if node == "localhost" {
+		node = p.hostname
+	}
+
+	// Only do this when flexv is provided with access keys
+	instances, err := p.getInstanceIdsByNodeNames([]string{node})
+	if len(instances) == 0 {
+		return cloudprovider.NewVolumeError("Can't not get instanceId for node: %v", node, err)
+	}
+	instance := instances[0]
+
+	diskId, _ := options["diskId"].(string)
+	if diskId == "" {
+		return cloudprovider.NewVolumeError("diskid is required")
+	}
+
+	disk, err := p.getDiskById(diskId)
+	if err != nil {
+		return cloudprovider.NewVolumeError(err.Error())
+	}
+
+	status := cloudprovider.NewVolumeSuccess()
+	status.Attached = disk.InstanceId == instance && disk.Status == ecs.DiskStatusInUse
+
+	return status
 }

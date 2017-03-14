@@ -91,7 +91,7 @@ func main() {
 
 	args := flag.Args()
 	if len(args) == 0 {
-		fatalf("Usage: %s init|attach|detach|mount|unmount", os.Args[0])
+		fatalf("Usage: %s init|attach|detach|mountdevice|unmountdevice|waitforattach|getvolumename|isattached", os.Args[0])
 	}
 
 	var ret error
@@ -101,27 +101,42 @@ func main() {
 	case "init":
 		ret = p.Init()
 	case "attach":
-		if len(args) < 1 {
-			fatalf("attach requires options in json format")
+		if len(args) < 2 {
+			fatalf("attach requires options in json format and a node name")
 		}
-		ret = p.Attach(ensureVolumeOptions(args[0]))
+		ret = p.Attach(ensureVolumeOptions(args[0]), args[1])
+	case "isattached":
+		if len(args) < 2 {
+			fatalf("isattached requires options in json format and a node name")
+		}
+		ret = p.Attach(ensureVolumeOptions(args[0]), args[1])
 	case "detach":
-		if len(args) < 1 {
-			fatalf("detach requires a device path")
+		if len(args) < 2 {
+			fatalf("detach requires a device path and a node name")
 		}
-		ret = p.Detach(args[0])
-	case "mount":
+		ret = p.Detach(args[0], args[1])
+	case "mountdevice":
 		if len(args) < 3 {
-			fatalf("mount requires a mount path, a device path and mount options")
+			fatalf("mountdevice requires a mount path, a device path and mount options")
 		}
-		ret = p.Mount(args[0], args[1], ensureVolumeOptions(args[2]))
-	case "unmount":
+		ret = p.MountDevice(args[0], args[1], ensureVolumeOptions(args[2]))
+	case "unmountdevice":
 		if len(args) < 1 {
-			fatalf("unmount requires a mount path")
+			fatalf("unmountdevice requires a mount path")
 		}
-		ret = p.Unmount(args[0])
+		ret = p.UnmountDevice(args[0])
+	case "waitforattach":
+		if len(args) < 2 {
+			fatalf("waitforattach requires a device path and options in json format")
+		}
+		ret = p.WaitForAttach(args[0], ensureVolumeOptions(args[1]))
+	case "getvolumename":
+		if len(args) < 1 {
+			fatalf("getvolumename requires options in json format")
+		}
+		ret = p.GetVolumeName(ensureVolumeOptions(args[0]))
 	default:
-		fatalf("Unknown command: %s", op)
+		ret = cloudprovider.NewVolumeNotSupported(op)
 	}
 
 	printResult(ret)

@@ -22,21 +22,20 @@ import (
 	"time"
 
 	"github.com/denverdino/aliyungo/common"
-	"github.com/denverdino/aliyungo/ecs"
 	"github.com/denverdino/aliyungo/slb"
 	"github.com/denverdino/aliyungo/util"
 	log "github.com/golang/glog"
-	"k8s.io/kubernetes/pkg/api"
+	api "k8s.io/kubernetes/pkg/api/v1"
 	autil "kubeup.com/kube-aliyun/pkg/util"
 )
 
 type AliyunLoadBalancerOptions struct {
-	InternetChargeType  string `k8s:"internet-charge-type"`
-	Bandwidth           int    `k8s:"bandwidth"`
-	HealthyThreshold    int    `k8s:"healthy-threshold"`
-	UnhealthyThreshold  int    `k8s:"unhealthy-threshold"`
-	HealthCheckTimeout  int    `k8s:"health-check-timeout"`
-	HealthCheckInterval int    `k8s:"health-check-interval"`
+	InternetChargeType        string `k8s:"internet-charge-type"`
+	Bandwidth                 int    `k8s:"bandwidth"`
+	HealthyThreshold          int    `k8s:"healthy-threshold"`
+	UnhealthyThreshold        int    `k8s:"unhealthy-threshold"`
+	HealthCheckConnectTimeout int    `k8s:"health-check-connect-timeout"`
+	HealthCheckInterval       int    `k8s:"health-check-interval"`
 }
 
 // Loadbalancer helpers
@@ -96,32 +95,7 @@ func (p *AliyunProvider) GetLoadBalancer(clusterName string, service *api.Servic
 	return
 }
 
-func (p *AliyunProvider) getInstanceIdsByNames(hosts []string) (instances []string, err error) {
-	args := &ecs.DescribeInstancesArgs{
-		RegionId: common.Region(p.region),
-		VpcId:    p.vpcID,
-	}
-	results, _, err := p.client.DescribeInstances(args)
-	if err != nil {
-		return
-	}
-
-	hostMap := make(map[string]bool)
-	for _, host := range hosts {
-		hostMap[host] = true
-	}
-
-	for _, instance := range results {
-		//log.Infof("aliyun hostname: %s instanceName: ", instance.HostName, instance.InstanceName)
-		if _, ok := hostMap[instance.HostName]; ok {
-			instances = append(instances, instance.InstanceId)
-		}
-	}
-
-	return
-}
-
-func (p *AliyunProvider) EnsureLoadBalancer(clusterName string, service *api.Service, hosts []string) (*api.LoadBalancerStatus, error) {
+func (p *AliyunProvider) EnsureLoadBalancer(clusterName string, service *api.Service, nodes []*api.Node) (*api.LoadBalancerStatus, error) {
 	spec := service.Spec
 	name := p.GetLoadBalancerName(service)
 
@@ -143,13 +117,13 @@ func (p *AliyunProvider) EnsureLoadBalancer(clusterName string, service *api.Ser
 		return nil, fmt.Errorf("LoadBalancerIP can't be set for Aliyun load balancers")
 	}
 
-	instances, err := p.getInstanceIdsByNames(hosts)
+	instances, err := p.getInstanceIdsByNodes(nodes)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Infof("Ensuring loadbalancer with backends %+v", hosts)
-	if len(instances) != len(hosts) {
+	log.Infof("Ensuring loadbalancer with backends %+v", nodes)
+	if len(instances) != len(nodes) {
 		log.Errorf("Unable to find some corresponding hosts in aliyun instances: %+v", instances)
 	}
 	// TODO: separate security groups to handle sourceRanges
@@ -316,29 +290,29 @@ func (p *AliyunProvider) ensureLBListeners(lb *slb.LoadBalancerType, ports []api
 			switch sp.Protocol {
 			case api.ProtocolTCP:
 				args := &slb.CreateLoadBalancerTCPListenerArgs{
-					LoadBalancerId:         lb.LoadBalancerId,
-					ListenerPort:           int(sp.Port),
-					BackendServerPort:      int(sp.NodePort),
-					Bandwidth:              options.Bandwidth,
-					HealthCheckType:        slb.TCPHealthCheckType,
-					HealthCheckConnectPort: int(sp.NodePort),
-					HealthyThreshold:       options.HealthyThreshold,
-					UnhealthyThreshold:     options.UnhealthyThreshold,
-					HealthCheckTimeout:     options.HealthCheckTimeout,
-					HealthCheckInterval:    options.HealthCheckInterval,
+					LoadBalancerId:            lb.LoadBalancerId,
+					ListenerPort:              int(sp.Port),
+					BackendServerPort:         int(sp.NodePort),
+					Bandwidth:                 options.Bandwidth,
+					HealthCheckType:           slb.TCPHealthCheckType,
+					HealthCheckConnectPort:    int(sp.NodePort),
+					HealthyThreshold:          options.HealthyThreshold,
+					UnhealthyThreshold:        options.UnhealthyThreshold,
+					HealthCheckConnectTimeout: options.HealthCheckConnectTimeout,
+					HealthCheckInterval:       options.HealthCheckInterval,
 				}
 				err = p.slbClient.CreateLoadBalancerTCPListener(args)
 			case api.ProtocolUDP:
 				args := &slb.CreateLoadBalancerUDPListenerArgs{
-					LoadBalancerId:         lb.LoadBalancerId,
-					ListenerPort:           int(sp.Port),
-					BackendServerPort:      int(sp.NodePort),
-					Bandwidth:              options.Bandwidth,
-					HealthCheckConnectPort: int(sp.NodePort),
-					HealthyThreshold:       options.HealthyThreshold,
-					UnhealthyThreshold:     options.UnhealthyThreshold,
-					HealthCheckTimeout:     options.HealthCheckTimeout,
-					HealthCheckInterval:    options.HealthCheckInterval,
+					LoadBalancerId:            lb.LoadBalancerId,
+					ListenerPort:              int(sp.Port),
+					BackendServerPort:         int(sp.NodePort),
+					Bandwidth:                 options.Bandwidth,
+					HealthCheckConnectPort:    int(sp.NodePort),
+					HealthyThreshold:          options.HealthyThreshold,
+					UnhealthyThreshold:        options.UnhealthyThreshold,
+					HealthCheckConnectTimeout: options.HealthCheckConnectTimeout,
+					HealthCheckInterval:       options.HealthCheckInterval,
 				}
 				err = p.slbClient.CreateLoadBalancerUDPListener(args)
 			default:
@@ -405,7 +379,7 @@ func (p *AliyunProvider) ensureLBBackends(lb *slb.LoadBalancerType, instances []
 	return nil
 }
 
-func (p *AliyunProvider) UpdateLoadBalancer(clusterName string, service *api.Service, hosts []string) error {
+func (p *AliyunProvider) UpdateLoadBalancer(clusterName string, service *api.Service, nodes []*api.Node) error {
 	lb, _, err := p.getLoadBalancer(p.GetLoadBalancerName(service))
 	if err != nil {
 		return err
@@ -430,7 +404,7 @@ func (p *AliyunProvider) UpdateLoadBalancer(clusterName string, service *api.Ser
 		return err
 	}
 
-	instances, err := p.getInstanceIdsByNames(hosts)
+	instances, err := p.getInstanceIdsByNodes(nodes)
 	if err != nil {
 		return err
 	}

@@ -18,20 +18,27 @@ package controller
 
 import (
 	log "github.com/golang/glog"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1core "k8s.io/client-go/kubernetes/typed/core/v1"
+	clientv1 "k8s.io/client-go/pkg/api/v1"
+	restclient "k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"k8s.io/client-go/tools/record"
 	"k8s.io/kubernetes/pkg/api"
-	kubernetes "k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset"
-	unversionedcore "k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset/typed/core/internalversion"
+	kubernetes "k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
+	informers "k8s.io/kubernetes/pkg/client/informers/informers_generated/externalversions"
 	"k8s.io/kubernetes/pkg/client/leaderelection"
 	"k8s.io/kubernetes/pkg/client/leaderelection/resourcelock"
-	"k8s.io/kubernetes/pkg/client/record"
-	"k8s.io/kubernetes/pkg/client/restclient"
-	"k8s.io/kubernetes/pkg/client/unversioned/clientcmd"
-	clientcmdapi "k8s.io/kubernetes/pkg/client/unversioned/clientcmd/api"
 	"k8s.io/kubernetes/pkg/controller/route"
 	"k8s.io/kubernetes/pkg/controller/service"
 	"kubeup.com/kube-aliyun/pkg/cloudprovider"
 	"net"
 	"time"
+)
+
+var (
+	ResyncPeriod = 30 * time.Second
 )
 
 // Controller is the actual entry of archond. It setups leader election, watches
@@ -80,8 +87,15 @@ func NewController(options *Options) (*Controller, error) {
 		log.Fatalf("Invalid api configuration: %+v", err)
 	}
 
+	sharedInformers := informers.NewSharedInformerFactory(k8s, ResyncPeriod)
+
 	// LB
-	sc, err := service.New(p, k8s, options.Overrides.Context.Cluster)
+	sc, err := service.New(
+		p,
+		k8s,
+		sharedInformers.Core().V1().Services(),
+		sharedInformers.Core().V1().Nodes(),
+		options.Overrides.Context.Cluster)
 	if err != nil {
 		log.Fatalf("Can't initialize service controller: %v", err)
 	}
@@ -95,7 +109,12 @@ func NewController(options *Options) (*Controller, error) {
 	if err != nil {
 		log.Fatalf("Invalid cidr")
 	}
-	rc := route.New(routes, k8s, options.Overrides.Context.Cluster, clusterCIDR)
+	rc := route.New(
+		routes,
+		k8s,
+		sharedInformers.Core().V1().Nodes(),
+		options.Overrides.Context.Cluster,
+		clusterCIDR)
 
 	return &Controller{
 		Options:  options,
@@ -110,14 +129,14 @@ func NewController(options *Options) (*Controller, error) {
 // Run starts leader election, service controller and main loop
 func (c *Controller) Run() error {
 	eventBroadcaster := record.NewBroadcaster()
-	recorder := eventBroadcaster.NewRecorder(api.EventSource{Component: c.Name})
 	eventBroadcaster.StartLogging(log.Infof)
-	eventBroadcaster.StartRecordingToSink(&unversionedcore.EventSinkImpl{Interface: c.k8s.Core().Events("")})
+	eventBroadcaster.StartRecordingToSink(&v1core.EventSinkImpl{Interface: v1core.New(c.k8s.Core().RESTClient()).Events("")})
+	recorder := eventBroadcaster.NewRecorder(api.Scheme, clientv1.EventSource{Component: c.Name})
 
 	run := func(done <-chan struct{}) {
 		log.Infof("Controller is leading. Starting loop")
-		go c.sc.Run(c.Options.ConcurrentServiceSyncs)
-		go c.rc.Run(c.Options.RouteReconcilationPeriod.Duration)
+		go c.sc.Run(done, c.Options.ConcurrentServiceSyncs)
+		go c.rc.Run(done, c.Options.RouteReconcilationPeriod.Duration)
 
 		select {
 		case <-done:
@@ -133,7 +152,7 @@ func (c *Controller) Run() error {
 
 	log.Infof("Leader election initiated. Waiting to take the lead...")
 	rl := resourcelock.EndpointsLock{
-		EndpointsMeta: api.ObjectMeta{
+		EndpointsMeta: metav1.ObjectMeta{
 			Namespace: "kube-system",
 			Name:      "aliyun-controller",
 		},

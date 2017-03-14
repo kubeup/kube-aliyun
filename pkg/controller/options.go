@@ -18,10 +18,10 @@ package controller
 
 import (
 	"github.com/spf13/pflag"
-	"k8s.io/kubernetes/pkg/api/unversioned"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/kubernetes/pkg/apis/componentconfig"
 	"k8s.io/kubernetes/pkg/client/leaderelection"
-	"k8s.io/kubernetes/pkg/client/unversioned/clientcmd"
 	"os"
 	"time"
 )
@@ -32,8 +32,8 @@ type Options struct {
 	ClusterCIDR              string
 	InCluster                bool
 	ConcurrentServiceSyncs   int
-	ShutdownGracePeriod      unversioned.Duration
-	RouteReconcilationPeriod unversioned.Duration
+	ShutdownGracePeriod      metav1.Duration
+	RouteReconcilationPeriod metav1.Duration
 
 	LeaderElection componentconfig.LeaderElectionConfiguration `json:"leaderElection"`
 	Overrides      clientcmd.ConfigOverrides

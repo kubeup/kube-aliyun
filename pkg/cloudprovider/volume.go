@@ -18,26 +18,32 @@ package cloudprovider
 
 import (
 	"encoding/json"
+	"fmt"
+	"k8s.io/kubernetes/pkg/volume/flexvolume"
 )
 
 // VolumeError is the json response of an volume operation
-type VolumeError struct {
-	Message string `json:"message"`
-	Status  string `json:"status"`
-	Device  string `json:"device"`
-}
+type VolumeError flexvolume.DriverStatus
 
 func (v VolumeError) Error() string {
 	return v.Message
 }
 
 // NewVolumeError creates failure error with given message
-func NewVolumeError(msg string) VolumeError {
-	return VolumeError{msg, "Failure", ""}
+func NewVolumeError(msg string, args ...interface{}) VolumeError {
+	return VolumeError{Message: fmt.Sprintf(msg, args...), Status: flexvolume.StatusFailure}
+}
+
+func NewVolumeNotSupported(msg string) VolumeError {
+	return VolumeError{Message: msg, Status: flexvolume.StatusNotSupported}
+}
+
+func NewVolumeSuccess() VolumeError {
+	return VolumeError{Status: flexvolume.StatusSuccess}
 }
 
 var (
-	VolumeSuccess = VolumeError{"", "Success", ""}
+	VolumeSuccess = NewVolumeSuccess()
 )
 
 func (v VolumeError) ToJson() string {
@@ -51,8 +57,11 @@ type VolumeOptions map[string]interface{}
 // Volume interface of flex volume plugin
 type Volume interface {
 	Init() error
-	Attach(options VolumeOptions) error
-	Detach(device string) error
-	Mount(dir, device string, options VolumeOptions) error
-	Unmount(dir string) error
+	Attach(options VolumeOptions, node string) error
+	Detach(device string, node string) error
+	MountDevice(dir, device string, options VolumeOptions) error
+	UnmountDevice(dir string) error
+	WaitForAttach(device string, options VolumeOptions) error
+	GetVolumeName(options VolumeOptions) error
+	IsAttached(options VolumeOptions, node string) error
 }

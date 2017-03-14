@@ -22,8 +22,8 @@ import (
 	"github.com/denverdino/aliyungo/common"
 	"github.com/denverdino/aliyungo/ecs"
 	log "github.com/golang/glog"
+	"k8s.io/apimachinery/pkg/types"
 	origcloudprovider "k8s.io/kubernetes/pkg/cloudprovider"
-	"k8s.io/kubernetes/pkg/types"
 )
 
 func nodeName2IP(s types.NodeName) string {
