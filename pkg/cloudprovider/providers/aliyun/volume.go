@@ -23,6 +23,7 @@ import (
 	"github.com/denverdino/aliyungo/ecs"
 	"k8s.io/kubernetes/pkg/util/exec"
 	"k8s.io/kubernetes/pkg/util/mount"
+	"path"
 	//"log"
 	"os"
 	"strings"
@@ -32,6 +33,9 @@ import (
 )
 
 var (
+	optionFSType    = "kubernetes.io/fsType"
+	optionReadWrite = "kubernetes.io/readwrite"
+
 	letters     = "abcdefghijklmnopqrstuvwxyz"
 	apiPrefix   = "/dev/xvd"
 	localPrefix = "/dev/vd"
@@ -193,8 +197,10 @@ func (p *AliyunProvider) Attach(options cloudprovider.VolumeOptions, node string
 	return status
 }
 
-func (p *AliyunProvider) Detach(device string, node string) error {
+// Here the deviceName is actually the volumeName from GetVolumeName. see operation-generator.go
+func (p *AliyunProvider) Detach(deviceName string, node string) error {
 	instance := p.instance
+
 	if node != "" {
 		instances, err := p.getInstanceIdsByNodeNames([]string{node})
 		if len(instances) == 0 {
@@ -207,9 +213,19 @@ func (p *AliyunProvider) Detach(device string, node string) error {
 		return cloudprovider.NewVolumeError("Failed to attach. No ALIYUN_INSTANCE is set and no node is provided.")
 	}
 
-	disk, err := p.getDiskByDevice(instance, device)
+	diskId := path.Base(deviceName)
+	disk, err := p.getDiskById(diskId)
 	if err != nil {
 		return cloudprovider.NewVolumeError(err.Error())
+	}
+
+	switch disk.Status {
+	case ecs.DiskStatusDetaching, ecs.DiskStatusAvailable:
+		return cloudprovider.VolumeSuccess
+	}
+
+	if disk.InstanceId != instance {
+		return cloudprovider.VolumeSuccess
 	}
 
 	err = p.client.DetachDisk(instance, disk.DiskId)
@@ -225,9 +241,17 @@ func (p *AliyunProvider) MountDevice(dir, device string, options cloudprovider.V
 		return err
 	}
 
-	fstype, _ := options["kubernetes.io/fsType"].(string)
+	fstype, _ := options[optionFSType].(string)
 	//data, _ := options["data"].(string)
-	flags, _ := options["flags"].(string)
+	readwrite, _ := options[optionReadWrite].(string)
+	flagstr, _ := options["flags"].(string)
+	flags := []string{}
+	if flagstr != "" {
+		flags = strings.Split(flagstr, ",")
+	}
+	if readwrite != "" {
+		flags = append(flags, readwrite)
+	}
 
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		if err = os.MkdirAll(dir, 0750); err != nil {
@@ -236,7 +260,7 @@ func (p *AliyunProvider) MountDevice(dir, device string, options cloudprovider.V
 	}
 
 	mounter := &mount.SafeFormatAndMount{Interface: mount.New(""), Runner: exec.New()}
-	err := mounter.FormatAndMount(device, dir, fstype, strings.Split(flags, ","))
+	err := mounter.FormatAndMount(device, dir, fstype, flags)
 	if err != nil {
 		return cloudprovider.NewVolumeError(err.Error())
 	}
@@ -282,7 +306,7 @@ func (p *AliyunProvider) WaitForAttach(device string, options cloudprovider.Volu
 func (p *AliyunProvider) GetVolumeName(options cloudprovider.VolumeOptions) error {
 	diskId, _ := options["diskId"].(string)
 	if diskId == "" {
-		return cloudprovider.NewVolumeError("diskId is required")
+		return cloudprovider.NewVolumeError("diskId is required, options: %+v", options)
 	}
 
 	status := cloudprovider.NewVolumeSuccess()
