@@ -115,26 +115,29 @@ func main() {
 			fatalf("detach requires a device path and a node name")
 		}
 		ret = p.Detach(args[0], args[1])
-	case "mountdevice":
-		if len(args) < 3 {
-			fatalf("mountdevice requires a mount path, a device path and mount options")
-		}
-		ret = p.MountDevice(args[0], args[1], ensureVolumeOptions(args[2]))
-	case "unmountdevice":
-		if len(args) < 1 {
-			fatalf("unmountdevice requires a mount path")
-		}
-		ret = p.UnmountDevice(args[0])
+		/*
+			case "mountdevice":
+				if len(args) < 3 {
+					fatalf("mountdevice requires a mount path, a device path and mount options")
+				}
+				ret = p.MountDevice(args[0], args[1], ensureVolumeOptions(args[2]))
+			case "unmountdevice":
+				if len(args) < 1 {
+					fatalf("unmountdevice requires a mount path")
+				}
+				ret = p.UnmountDevice(args[0])
+		*/
 	case "waitforattach":
 		if len(args) < 2 {
 			fatalf("waitforattach requires a device path and options in json format")
 		}
 		ret = p.WaitForAttach(args[0], ensureVolumeOptions(args[1]))
-	case "getvolumename":
-		if len(args) < 1 {
-			fatalf("getvolumename requires options in json format")
-		}
-		ret = p.GetVolumeName(ensureVolumeOptions(args[0]))
+	// Use default
+	/*case "getvolumename":
+	if len(args) < 1 {
+		fatalf("getvolumename requires options in json format")
+	}
+	ret = p.GetVolumeName(ensureVolumeOptions(args[0]))*/
 	default:
 		ret = cloudprovider.NewVolumeNotSupported(op)
 	}
