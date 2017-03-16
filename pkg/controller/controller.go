@@ -41,8 +41,7 @@ import (
 )
 
 var (
-	ResyncPeriod    = 30 * time.Second
-	ProvisionerName = "archon.kubeup.com/aliyun"
+	ResyncPeriod = 30 * time.Second
 )
 
 // Controller is the actual entry of archond. It setups leader election, watches
@@ -138,7 +137,7 @@ func NewController(options *Options) (*Controller, error) {
 		}
 
 		ldConfig := options.LeaderElection
-		pvc = pvcontroller.NewProvisionController(clientk8s, ResyncPeriod, ProvisionerName, volume, serverVersion.GitVersion, false,
+		pvc = pvcontroller.NewProvisionController(clientk8s, ResyncPeriod, volume.ProvisionerName(), volume, serverVersion.GitVersion, false,
 			options.ProvisionRetry,
 			ldConfig.LeaseDuration.Duration,
 			ldConfig.RenewDeadline.Duration,

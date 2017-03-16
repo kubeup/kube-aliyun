@@ -67,6 +67,7 @@ type Volume interface {
 	GetVolumeName(options VolumeOptions) error
 	IsAttached(options VolumeOptions, node string) error
 
+	ProvisionerName() string
 	Provision(pv.VolumeOptions) (*v1.PersistentVolume, error)
 	Delete(*v1.PersistentVolume) error
 }

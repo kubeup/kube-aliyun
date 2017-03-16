@@ -21,14 +21,15 @@ import (
 	"fmt"
 	"github.com/denverdino/aliyungo/common"
 	"github.com/denverdino/aliyungo/ecs"
+	log "github.com/golang/glog"
 	pvcontroller "github.com/kubernetes-incubator/external-storage/lib/controller"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/kubernetes/pkg/util/exec"
 	"k8s.io/kubernetes/pkg/util/mount"
-	"path"
-	//"log"
 	"os"
+	"path"
 	"strings"
 	//"syscall"
 	"kubeup.com/kube-aliyun/pkg/cloudprovider"
@@ -46,8 +47,17 @@ var (
 	WaitInterval         = time.Second
 	WaitForAttachTimeout = 10 * time.Second
 
-	DefaultFSType = "ext4"
-	DriverName    = "aliyun~flexv"
+	DefaultFSType   = "ext4"
+	DriverName      = "aliyun/flexv"
+	ProvisionerName = "archon.kubeup.com/aliyun"
+
+	MinSizeTable = map[ecs.DiskCategory]int{
+		ecs.DiskCategoryCloud:           5,
+		ecs.DiskCategoryEphemeral:       5,
+		ecs.DiskCategoryEphemeralSSD:    20,
+		ecs.DiskCategoryCloudEfficiency: 20,
+		ecs.DiskCategoryCloudSSD:        20,
+	}
 )
 
 var _ cloudprovider.Volume = &AliyunProvider{}
@@ -359,6 +369,20 @@ func (p *AliyunProvider) Provision(options pvcontroller.VolumeOptions) (*v1.Pers
 		return nil, fmt.Errorf("diskCategory must be specified in storageClass")
 	}
 	capacity := options.PVC.Spec.Resources.Requests[v1.ResourceName(v1.ResourceStorage)]
+	// Convert to G/Gi scale
+	size := int(capacity.ScaledValue(resource.Giga))
+	log.Infof("Provision disk %v size: %+v %d", capacity, size)
+
+	// Min size
+	minSize, ok := MinSizeTable[ecs.DiskCategory(storageOptions.Category)]
+	if !ok {
+		minSize = 5
+	}
+
+	if size < minSize {
+		size = minSize
+	}
+	log.Infof("Min size %d New size: %d", minSize, size)
 
 	// Create disk
 	diskId, err := p.client.CreateDisk(&ecs.CreateDiskArgs{
@@ -366,10 +390,15 @@ func (p *AliyunProvider) Provision(options pvcontroller.VolumeOptions) (*v1.Pers
 		ZoneId:       p.zone,
 		DiskCategory: ecs.DiskCategory(storageOptions.Category),
 		DiskName:     options.PVName,
-		Size:         int(capacity.Value()),
+		Size:         size,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("Failed to call Aliyun CreateDisk: %v", err)
+	}
+
+	storageClassName := ""
+	if options.PVC.Spec.StorageClassName != nil {
+		storageClassName = *options.PVC.Spec.StorageClassName
 	}
 
 	pv := &v1.PersistentVolume{
@@ -382,6 +411,7 @@ func (p *AliyunProvider) Provision(options pvcontroller.VolumeOptions) (*v1.Pers
 			Capacity: v1.ResourceList{
 				v1.ResourceName(v1.ResourceStorage): capacity,
 			},
+			StorageClassName: storageClassName,
 			PersistentVolumeSource: v1.PersistentVolumeSource{
 				FlexVolume: &v1.FlexVolumeSource{
 					Driver:   DriverName,
@@ -415,4 +445,8 @@ func (p *AliyunProvider) Delete(pv *v1.PersistentVolume) error {
 	}
 
 	return nil
+}
+
+func (p *AliyunProvider) ProvisionerName() string {
+	return ProvisionerName
 }

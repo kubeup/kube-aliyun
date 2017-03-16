@@ -62,6 +62,7 @@ func init() {
 func NewProvider() cloudprovider.Provider {
 	accessKey := os.Getenv("ALIYUN_ACCESS_KEY")
 	accessKeySecret := os.Getenv("ALIYUN_ACCESS_KEY_SECRET")
+	debug := os.Getenv("ALIYUN_DEBUG")
 	hostname, _ := os.Hostname()
 	httpClient := &http.Client{
 		Timeout: time.Duration(3) * time.Second,
@@ -81,6 +82,10 @@ func NewProvider() cloudprovider.Provider {
 		accessKey:       accessKey,
 		accessKeySecret: accessKeySecret,
 		hostname:        hostname,
+	}
+
+	if debug == "true" {
+		p.client.SetDebug(true)
 	}
 
 	metaFailed := false
