@@ -56,7 +56,7 @@ func (w *AliyunProvider) ListRoutes(clusterName string) (routes []*origcloudprov
 
 	for _, t := range tables {
 		for _, r := range t.RouteEntrys.RouteEntry {
-			if r.NextHopType != string(ecs.NextHopInstance) {
+			if r.NextHopType != string(ecs.NextHopIntance) {
 				continue
 			}
 

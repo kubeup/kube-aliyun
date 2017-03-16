@@ -31,6 +31,7 @@ type Options struct {
 	Kubeconfig               string
 	ClusterCIDR              string
 	InCluster                bool
+	ProvisionRetry           int
 	ConcurrentServiceSyncs   int
 	ShutdownGracePeriod      metav1.Duration
 	RouteReconcilationPeriod metav1.Duration
@@ -48,6 +49,7 @@ func (o *Options) AddFlags(ps *pflag.FlagSet) {
 	ps.DurationVar(&o.ShutdownGracePeriod.Duration, "shutdown-grace-period", 3*time.Second, "Shutdown grace period")
 	ps.DurationVar(&o.RouteReconcilationPeriod.Duration, "route-reconcilation-period", 30*time.Second, "Route reconcilation period")
 	ps.StringVar(&o.Kubeconfig, "kubeconfig", o.Kubeconfig, "Path to kubeconfig file with authorization and master location information.")
+	ps.IntVar(&o.ProvisionRetry, "provision-retry", 10, "If the number of retries on provisioning failure need to be limited to a set number of attempts. Default 10")
 
 	leaderelection.BindFlags(&o.LeaderElection, ps)
 	overrideFlags := clientcmd.RecommendedConfigOverrideFlags("")

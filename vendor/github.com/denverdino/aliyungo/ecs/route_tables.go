@@ -91,8 +91,8 @@ func (client *Client) DescribeRouteTables(args *DescribeRouteTablesArgs) (routeT
 type NextHopType string
 
 const (
-	NextHopInstance = NextHopType("Instance") //Default
-	NextHopTunnel   = NextHopType("Tunnel")
+	NextHopIntance = NextHopType("Instance") //Default
+	NextHopTunnel  = NextHopType("Tunnel")
 )
 
 type CreateRouteEntryArgs struct {

@@ -1,6 +1,8 @@
 package s3crypto
 
 import (
+	"strings"
+
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/kms"
@@ -14,10 +16,14 @@ type WrapEntry func(Envelope) (CipherDataDecrypter, error)
 // CEKEntry is a builder thatn returns a proper content decrypter and error
 type CEKEntry func(CipherData) (ContentCipher, error)
 
-// DecryptionClient is an S3 crypto client. By default the SDK will use Authentication mode which
-// will use KMS for key wrapping and AES GCM for content encryption.
-// AES GCM will load all data into memory. However, the rest of the content algorithms
-// do not load the entire contents into memory.
+// DecryptionClient is an S3 crypto client. The decryption client
+// will handle all get object requests from Amazon S3.
+// Supported key wrapping algorithms:
+//	*AWS KMS
+//
+// Supported content ciphers:
+//	* AES/GCM
+//	* AES/CBC
 type DecryptionClient struct {
 	S3Client s3iface.S3API
 	// LoadStrategy is used to load the metadata either from the metadata of the object
@@ -26,20 +32,18 @@ type DecryptionClient struct {
 	// Defaults to our default load strategy.
 	LoadStrategy LoadStrategy
 
-	WrapRegistry map[string]WrapEntry
-	CEKRegistry  map[string]CEKEntry
+	WrapRegistry   map[string]WrapEntry
+	CEKRegistry    map[string]CEKEntry
+	PadderRegistry map[string]Padder
 }
 
 // NewDecryptionClient instantiates a new S3 crypto client
 //
 // Example:
-//	cmkID := "some key id to kms"
 //	sess := session.New()
-//	handler, err = s3crypto.NewKMSEncryptHandler(sess, cmkID, s3crypto.MaterialDescription{})
-//	if err != nil {
-//	  return err
-//	}
-//	svc := s3crypto.New(sess, s3crypto.AESGCMContentCipherBuilder(handler))
+//	svc := s3crypto.NewDecryptionClient(sess, func(svc *s3crypto.DecryptionClient{
+//		// Custom client options here
+//	}))
 func NewDecryptionClient(prov client.ConfigProvider, options ...func(*DecryptionClient)) *DecryptionClient {
 	s3client := s3.New(prov)
 	client := &DecryptionClient{
@@ -53,7 +57,12 @@ func NewDecryptionClient(prov client.ConfigProvider, options ...func(*Decryption
 			}).decryptHandler,
 		},
 		CEKRegistry: map[string]CEKEntry{
-			AESGCMNoPadding: newAESGCMContentCipher,
+			AESGCMNoPadding:                                          newAESGCMContentCipher,
+			strings.Join([]string{AESCBC, AESCBCPadder.Name()}, "/"): newAESCBCContentCipher,
+		},
+		PadderRegistry: map[string]Padder{
+			strings.Join([]string{AESCBC, AESCBCPadder.Name()}, "/"): AESCBCPadder,
+			"NoPadding": NoPadder,
 		},
 	}
 	for _, option := range options {
@@ -67,7 +76,8 @@ func NewDecryptionClient(prov client.ConfigProvider, options ...func(*Decryption
 // decryption will be done. The SDK only supports V2 reads of KMS and GCM.
 //
 // Example:
-//	svc := s3crypto.New(session.New(),s3crypto.AESGCMContentCipherBuilder(handler))
+//	sess := session.New()
+//	svc := s3crypto.NewDecryptionClient(sess)
 //	req, out := svc.GetObjectRequest(&s3.GetObjectInput {
 //	  Key: aws.String("testKey"),
 //	  Bucket: aws.String("testBucket"),

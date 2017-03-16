@@ -39,6 +39,7 @@ type AliyunProvider struct {
 	accessKey       string
 	accessKeySecret string
 	region          string
+	zone            string
 	vpcID           string
 	vrouterID       string
 	vswitch         string
@@ -72,6 +73,7 @@ func NewProvider() cloudprovider.Provider {
 		meta:            metadata.NewMetaData(httpClient),
 		region:          os.Getenv("ALIYUN_REGION"),
 		vpcID:           os.Getenv("ALIYUN_VPC"),
+		zone:            os.Getenv("ALIYUN_ZONE"),
 		vrouterID:       os.Getenv("ALIYUN_ROUTER"),
 		vswitch:         os.Getenv("ALIYUN_VSWITCH"),
 		routeTable:      os.Getenv("ALIYUN_ROUTE_TABLE"),

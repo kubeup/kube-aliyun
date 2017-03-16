@@ -15,6 +15,10 @@ import:
   version: master
 - package: k8s.io/apimachinery
   version: master
+- package: github.com/kubernetes-incubator/external-storage
+  repo: https://github.com/ledzep2/external-storage
+  vcs: git
+  version: k8s-1.6
 - package: github.com/denverdino/aliyungo
   subpackages:
   - common

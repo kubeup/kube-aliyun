@@ -21,6 +21,9 @@ import (
 	"fmt"
 	"github.com/denverdino/aliyungo/common"
 	"github.com/denverdino/aliyungo/ecs"
+	pvcontroller "github.com/kubernetes-incubator/external-storage/lib/controller"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/kubernetes/pkg/util/exec"
 	"k8s.io/kubernetes/pkg/util/mount"
 	"path"
@@ -29,54 +32,41 @@ import (
 	"strings"
 	//"syscall"
 	"kubeup.com/kube-aliyun/pkg/cloudprovider"
+	"kubeup.com/kube-aliyun/pkg/util"
 	"time"
 )
 
 var (
-	optionFSType    = "kubernetes.io/fsType"
-	optionReadWrite = "kubernetes.io/readwrite"
+	OptionFSType    = "kubernetes.io/fsType"
+	OptionReadWrite = "kubernetes.io/readwrite"
 
-	letters     = "abcdefghijklmnopqrstuvwxyz"
-	apiPrefix   = "/dev/xvd"
-	localPrefix = "/dev/vd"
+	APIPrefix   = "/dev/xvd"
+	LocalPrefix = "/dev/vd"
 
 	WaitInterval         = time.Second
 	WaitForAttachTimeout = 10 * time.Second
+
+	DefaultFSType = "ext4"
+	DriverName    = "aliyun~flexv"
 )
 
 var _ cloudprovider.Volume = &AliyunProvider{}
+var _ pvcontroller.Provisioner = &AliyunProvider{}
+
+type StorageOptions struct {
+	FSType   string `k8s:"fsType"`
+	Category string `k8s:"diskCategory"`
+}
 
 // TODO: Use nil as success result
 
 // Aliyun api only takes /dev/xvd? even though it's actuall vd? in coreos system
 func deviceApi2Local(s string) string {
-	return strings.Replace(s, apiPrefix, localPrefix, 1)
+	return strings.Replace(s, APIPrefix, LocalPrefix, 1)
 }
 
 func deviceLocal2Api(s string) string {
-	return strings.Replace(s, localPrefix, apiPrefix, 1)
-}
-
-func probeLocalDevicePath() error {
-	prefixes := []string{"/dev/xvd", "/dev/vd", "/dev/sd"}
-	for _, p := range prefixes {
-		if _, err := os.Stat(p + "a"); !os.IsNotExist(err) {
-			localPrefix = p
-			return nil
-		}
-	}
-	return cloudprovider.NewVolumeError("Unable to get a proper local device name")
-}
-
-func getAvailableDevicePath() string {
-	for _, b := range letters {
-		path := localPrefix + string(b)
-		if _, err := os.Stat(path); os.IsNotExist(err) {
-			return path
-		}
-	}
-
-	return ""
+	return strings.Replace(s, LocalPrefix, APIPrefix, 1)
 }
 
 func sameDevice(a, b string) bool {
@@ -237,13 +227,9 @@ func (p *AliyunProvider) Detach(deviceName string, node string) error {
 }
 
 func (p *AliyunProvider) MountDevice(dir, device string, options cloudprovider.VolumeOptions) error {
-	if err := probeLocalDevicePath(); err != nil {
-		return err
-	}
-
-	fstype, _ := options[optionFSType].(string)
+	fstype, _ := options[OptionFSType].(string)
 	//data, _ := options["data"].(string)
-	readwrite, _ := options[optionReadWrite].(string)
+	readwrite, _ := options[OptionReadWrite].(string)
 	flagstr, _ := options["flags"].(string)
 	flags := []string{}
 	if flagstr != "" {
@@ -345,4 +331,88 @@ func (p *AliyunProvider) IsAttached(options cloudprovider.VolumeOptions, node st
 	status.Attached = disk.InstanceId == instance && disk.Status == ecs.DiskStatusInUse
 
 	return status
+}
+
+func (p *AliyunProvider) Provision(options pvcontroller.VolumeOptions) (*v1.PersistentVolume, error) {
+	if options.PVC.Spec.Selector != nil {
+		return nil, fmt.Errorf("claim.Spec.Selector is not supported")
+	}
+
+	// Validate access modes
+	found := false
+	for _, mode := range options.PVC.Spec.AccessModes {
+		if mode == v1.ReadWriteOnce {
+			found = true
+		}
+	}
+	if !found {
+		return nil, fmt.Errorf("Aliyun disk only supports ReadWriteOnce mounts")
+	}
+
+	// Get all options
+	storageOptions := StorageOptions{
+		FSType: DefaultFSType,
+	}
+	util.MapToStruct(options.Parameters, &storageOptions, "")
+
+	if storageOptions.Category == "" {
+		return nil, fmt.Errorf("diskCategory must be specified in storageClass")
+	}
+	capacity := options.PVC.Spec.Resources.Requests[v1.ResourceName(v1.ResourceStorage)]
+
+	// Create disk
+	diskId, err := p.client.CreateDisk(&ecs.CreateDiskArgs{
+		RegionId:     common.Region(p.region),
+		ZoneId:       p.zone,
+		DiskCategory: ecs.DiskCategory(storageOptions.Category),
+		DiskName:     options.PVName,
+		Size:         int(capacity.Value()),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("Failed to call Aliyun CreateDisk: %v", err)
+	}
+
+	pv := &v1.PersistentVolume{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: options.PVName,
+		},
+		Spec: v1.PersistentVolumeSpec{
+			PersistentVolumeReclaimPolicy: options.PersistentVolumeReclaimPolicy,
+			AccessModes:                   []v1.PersistentVolumeAccessMode{v1.ReadWriteOnce},
+			Capacity: v1.ResourceList{
+				v1.ResourceName(v1.ResourceStorage): capacity,
+			},
+			PersistentVolumeSource: v1.PersistentVolumeSource{
+				FlexVolume: &v1.FlexVolumeSource{
+					Driver:   DriverName,
+					FSType:   storageOptions.FSType,
+					ReadOnly: false,
+					Options: map[string]string{
+						"diskId": diskId,
+					},
+				},
+			},
+		},
+	}
+
+	return pv, nil
+}
+
+func (p *AliyunProvider) Delete(pv *v1.PersistentVolume) error {
+	fv := pv.Spec.PersistentVolumeSource.FlexVolume
+	if fv == nil {
+		return fmt.Errorf("No flexvolume is provided: %+v", pv)
+	}
+
+	diskId, _ := fv.Options["diskId"]
+	if diskId == "" {
+		return fmt.Errorf("No diskId in the flexvolume: %+v", fv)
+	}
+
+	err := p.client.DeleteDisk(diskId)
+	if err != nil {
+		return fmt.Errorf("Error deleting disk: %v", err)
+	}
+
+	return nil
 }

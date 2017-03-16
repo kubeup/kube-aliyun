@@ -19,6 +19,8 @@ package cloudprovider
 import (
 	"encoding/json"
 	"fmt"
+	pv "github.com/kubernetes-incubator/external-storage/lib/controller"
+	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/kubernetes/pkg/volume/flexvolume"
 )
 
@@ -64,4 +66,7 @@ type Volume interface {
 	WaitForAttach(device string, options VolumeOptions) error
 	GetVolumeName(options VolumeOptions) error
 	IsAttached(options VolumeOptions, node string) error
+
+	Provision(pv.VolumeOptions) (*v1.PersistentVolume, error)
+	Delete(*v1.PersistentVolume) error
 }

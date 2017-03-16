@@ -18,7 +18,10 @@ package controller
 
 import (
 	log "github.com/golang/glog"
+	pvcontroller "github.com/kubernetes-incubator/external-storage/lib/controller"
+	pvleaderelection "github.com/kubernetes-incubator/external-storage/lib/leaderelection"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	clientkubernetes "k8s.io/client-go/kubernetes"
 	v1core "k8s.io/client-go/kubernetes/typed/core/v1"
 	clientv1 "k8s.io/client-go/pkg/api/v1"
 	restclient "k8s.io/client-go/rest"
@@ -38,7 +41,8 @@ import (
 )
 
 var (
-	ResyncPeriod = 30 * time.Second
+	ResyncPeriod    = 30 * time.Second
+	ProvisionerName = "archon.kubeup.com/aliyun"
 )
 
 // Controller is the actual entry of archond. It setups leader election, watches
@@ -51,6 +55,7 @@ type Controller struct {
 	k8s      kubernetes.Interface
 	sc       *service.ServiceController
 	rc       *route.RouteController
+	pvc      *pvcontroller.ProvisionController
 
 	done bool
 }
@@ -116,12 +121,38 @@ func NewController(options *Options) (*Controller, error) {
 		options.Overrides.Context.Cluster,
 		clusterCIDR)
 
+	// PVC controller
+	clientk8s, err := clientkubernetes.NewForConfig(clientConfig)
+	if err != nil {
+		log.Fatalf("Invalid api configuration: %+v", err)
+	}
+
+	var pvc *pvcontroller.ProvisionController
+	volume, ok := p.Volume()
+	if !ok {
+		log.Warningf("Provider doesn't support volume. Provision controller will not work")
+	} else {
+		serverVersion, err := clientk8s.Discovery().ServerVersion()
+		if err != nil {
+			log.Fatalf("Error getting server version: %v", err)
+		}
+
+		ldConfig := options.LeaderElection
+		pvc = pvcontroller.NewProvisionController(clientk8s, ResyncPeriod, ProvisionerName, volume, serverVersion.GitVersion, false,
+			options.ProvisionRetry,
+			ldConfig.LeaseDuration.Duration,
+			ldConfig.RenewDeadline.Duration,
+			ldConfig.RetryPeriod.Duration,
+			pvleaderelection.DefaultTermLimit)
+	}
+
 	return &Controller{
 		Options:  options,
 		provider: p,
 		k8s:      k8s,
 		sc:       sc,
 		rc:       rc,
+		pvc:      pvc,
 		done:     false,
 	}, nil
 }
@@ -137,6 +168,7 @@ func (c *Controller) Run() error {
 		log.Infof("Controller is leading. Starting loop")
 		go c.sc.Run(done, c.Options.ConcurrentServiceSyncs)
 		go c.rc.Run(done, c.Options.RouteReconcilationPeriod.Duration)
+		go c.pvc.Run(done)
 
 		select {
 		case <-done:

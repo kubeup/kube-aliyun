@@ -65,21 +65,95 @@ func (c *DeviceFarm) CreateDevicePoolRequest(input *CreateDevicePoolInput) (req 
 // API operation CreateDevicePool for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/CreateDevicePool
 func (c *DeviceFarm) CreateDevicePool(input *CreateDevicePoolInput) (*CreateDevicePoolOutput, error) {
 	req, out := c.CreateDevicePoolRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opCreateNetworkProfile = "CreateNetworkProfile"
+
+// CreateNetworkProfileRequest generates a "aws/request.Request" representing the
+// client's request for the CreateNetworkProfile operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See CreateNetworkProfile for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the CreateNetworkProfile method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the CreateNetworkProfileRequest method.
+//    req, resp := client.CreateNetworkProfileRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/CreateNetworkProfile
+func (c *DeviceFarm) CreateNetworkProfileRequest(input *CreateNetworkProfileInput) (req *request.Request, output *CreateNetworkProfileOutput) {
+	op := &request.Operation{
+		Name:       opCreateNetworkProfile,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &CreateNetworkProfileInput{}
+	}
+
+	output = &CreateNetworkProfileOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// CreateNetworkProfile API operation for AWS Device Farm.
+//
+// Creates a network profile.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Device Farm's
+// API operation CreateNetworkProfile for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeArgumentException "ArgumentException"
+//   An invalid argument was specified.
+//
+//   * ErrCodeNotFoundException "NotFoundException"
+//   The specified entity was not found.
+//
+//   * ErrCodeLimitExceededException "LimitExceededException"
+//   A limit was exceeded.
+//
+//   * ErrCodeServiceAccountException "ServiceAccountException"
+//   There was a problem with the service account.
+//
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/CreateNetworkProfile
+func (c *DeviceFarm) CreateNetworkProfile(input *CreateNetworkProfileInput) (*CreateNetworkProfileOutput, error) {
+	req, out := c.CreateNetworkProfileRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -139,16 +213,16 @@ func (c *DeviceFarm) CreateProjectRequest(input *CreateProjectInput) (req *reque
 // API operation CreateProject for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/CreateProject
@@ -213,16 +287,16 @@ func (c *DeviceFarm) CreateRemoteAccessSessionRequest(input *CreateRemoteAccessS
 // API operation CreateRemoteAccessSession for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/CreateRemoteAccessSession
@@ -287,16 +361,16 @@ func (c *DeviceFarm) CreateUploadRequest(input *CreateUploadInput) (req *request
 // API operation CreateUpload for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/CreateUpload
@@ -362,21 +436,95 @@ func (c *DeviceFarm) DeleteDevicePoolRequest(input *DeleteDevicePoolInput) (req 
 // API operation DeleteDevicePool for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/DeleteDevicePool
 func (c *DeviceFarm) DeleteDevicePool(input *DeleteDevicePoolInput) (*DeleteDevicePoolOutput, error) {
 	req, out := c.DeleteDevicePoolRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opDeleteNetworkProfile = "DeleteNetworkProfile"
+
+// DeleteNetworkProfileRequest generates a "aws/request.Request" representing the
+// client's request for the DeleteNetworkProfile operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See DeleteNetworkProfile for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the DeleteNetworkProfile method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the DeleteNetworkProfileRequest method.
+//    req, resp := client.DeleteNetworkProfileRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/DeleteNetworkProfile
+func (c *DeviceFarm) DeleteNetworkProfileRequest(input *DeleteNetworkProfileInput) (req *request.Request, output *DeleteNetworkProfileOutput) {
+	op := &request.Operation{
+		Name:       opDeleteNetworkProfile,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &DeleteNetworkProfileInput{}
+	}
+
+	output = &DeleteNetworkProfileOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// DeleteNetworkProfile API operation for AWS Device Farm.
+//
+// Deletes a network profile.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Device Farm's
+// API operation DeleteNetworkProfile for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeArgumentException "ArgumentException"
+//   An invalid argument was specified.
+//
+//   * ErrCodeNotFoundException "NotFoundException"
+//   The specified entity was not found.
+//
+//   * ErrCodeLimitExceededException "LimitExceededException"
+//   A limit was exceeded.
+//
+//   * ErrCodeServiceAccountException "ServiceAccountException"
+//   There was a problem with the service account.
+//
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/DeleteNetworkProfile
+func (c *DeviceFarm) DeleteNetworkProfile(input *DeleteNetworkProfileInput) (*DeleteNetworkProfileOutput, error) {
+	req, out := c.DeleteNetworkProfileRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -438,16 +586,16 @@ func (c *DeviceFarm) DeleteProjectRequest(input *DeleteProjectInput) (req *reque
 // API operation DeleteProject for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/DeleteProject
@@ -512,16 +660,16 @@ func (c *DeviceFarm) DeleteRemoteAccessSessionRequest(input *DeleteRemoteAccessS
 // API operation DeleteRemoteAccessSession for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/DeleteRemoteAccessSession
@@ -588,16 +736,16 @@ func (c *DeviceFarm) DeleteRunRequest(input *DeleteRunInput) (req *request.Reque
 // API operation DeleteRun for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/DeleteRun
@@ -662,16 +810,16 @@ func (c *DeviceFarm) DeleteUploadRequest(input *DeleteUploadInput) (req *request
 // API operation DeleteUpload for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/DeleteUpload
@@ -737,16 +885,16 @@ func (c *DeviceFarm) GetAccountSettingsRequest(input *GetAccountSettingsInput) (
 // API operation GetAccountSettings for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/GetAccountSettings
@@ -811,16 +959,16 @@ func (c *DeviceFarm) GetDeviceRequest(input *GetDeviceInput) (req *request.Reque
 // API operation GetDevice for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/GetDevice
@@ -885,16 +1033,16 @@ func (c *DeviceFarm) GetDevicePoolRequest(input *GetDevicePoolInput) (req *reque
 // API operation GetDevicePool for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/GetDevicePool
@@ -959,16 +1107,16 @@ func (c *DeviceFarm) GetDevicePoolCompatibilityRequest(input *GetDevicePoolCompa
 // API operation GetDevicePoolCompatibility for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/GetDevicePoolCompatibility
@@ -1033,21 +1181,95 @@ func (c *DeviceFarm) GetJobRequest(input *GetJobInput) (req *request.Request, ou
 // API operation GetJob for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/GetJob
 func (c *DeviceFarm) GetJob(input *GetJobInput) (*GetJobOutput, error) {
 	req, out := c.GetJobRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opGetNetworkProfile = "GetNetworkProfile"
+
+// GetNetworkProfileRequest generates a "aws/request.Request" representing the
+// client's request for the GetNetworkProfile operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See GetNetworkProfile for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the GetNetworkProfile method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the GetNetworkProfileRequest method.
+//    req, resp := client.GetNetworkProfileRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/GetNetworkProfile
+func (c *DeviceFarm) GetNetworkProfileRequest(input *GetNetworkProfileInput) (req *request.Request, output *GetNetworkProfileOutput) {
+	op := &request.Operation{
+		Name:       opGetNetworkProfile,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &GetNetworkProfileInput{}
+	}
+
+	output = &GetNetworkProfileOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// GetNetworkProfile API operation for AWS Device Farm.
+//
+// Returns information about a network profile.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Device Farm's
+// API operation GetNetworkProfile for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeArgumentException "ArgumentException"
+//   An invalid argument was specified.
+//
+//   * ErrCodeNotFoundException "NotFoundException"
+//   The specified entity was not found.
+//
+//   * ErrCodeLimitExceededException "LimitExceededException"
+//   A limit was exceeded.
+//
+//   * ErrCodeServiceAccountException "ServiceAccountException"
+//   There was a problem with the service account.
+//
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/GetNetworkProfile
+func (c *DeviceFarm) GetNetworkProfile(input *GetNetworkProfileInput) (*GetNetworkProfileOutput, error) {
+	req, out := c.GetNetworkProfileRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -1118,20 +1340,20 @@ func (c *DeviceFarm) GetOfferingStatusRequest(input *GetOfferingStatusInput) (re
 // API operation GetOfferingStatus for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * NotEligibleException
+//   * ErrCodeNotEligibleException "NotEligibleException"
 //   Exception gets thrown when a user is not eligible to perform the specified
 //   transaction.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/GetOfferingStatus
@@ -1221,16 +1443,16 @@ func (c *DeviceFarm) GetProjectRequest(input *GetProjectInput) (req *request.Req
 // API operation GetProject for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/GetProject
@@ -1295,16 +1517,16 @@ func (c *DeviceFarm) GetRemoteAccessSessionRequest(input *GetRemoteAccessSession
 // API operation GetRemoteAccessSession for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/GetRemoteAccessSession
@@ -1369,16 +1591,16 @@ func (c *DeviceFarm) GetRunRequest(input *GetRunInput) (req *request.Request, ou
 // API operation GetRun for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/GetRun
@@ -1443,16 +1665,16 @@ func (c *DeviceFarm) GetSuiteRequest(input *GetSuiteInput) (req *request.Request
 // API operation GetSuite for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/GetSuite
@@ -1517,16 +1739,16 @@ func (c *DeviceFarm) GetTestRequest(input *GetTestInput) (req *request.Request, 
 // API operation GetTest for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/GetTest
@@ -1591,16 +1813,16 @@ func (c *DeviceFarm) GetUploadRequest(input *GetUploadInput) (req *request.Reque
 // API operation GetUpload for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/GetUpload
@@ -1667,16 +1889,16 @@ func (c *DeviceFarm) InstallToRemoteAccessSessionRequest(input *InstallToRemoteA
 // API operation InstallToRemoteAccessSession for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/InstallToRemoteAccessSession
@@ -1747,16 +1969,16 @@ func (c *DeviceFarm) ListArtifactsRequest(input *ListArtifactsInput) (req *reque
 // API operation ListArtifacts for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/ListArtifacts
@@ -1852,16 +2074,16 @@ func (c *DeviceFarm) ListDevicePoolsRequest(input *ListDevicePoolsInput) (req *r
 // API operation ListDevicePools for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/ListDevicePools
@@ -1957,16 +2179,16 @@ func (c *DeviceFarm) ListDevicesRequest(input *ListDevicesInput) (req *request.R
 // API operation ListDevices for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/ListDevices
@@ -2062,16 +2284,16 @@ func (c *DeviceFarm) ListJobsRequest(input *ListJobsInput) (req *request.Request
 // API operation ListJobs for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/ListJobs
@@ -2104,6 +2326,80 @@ func (c *DeviceFarm) ListJobsPages(input *ListJobsInput, fn func(p *ListJobsOutp
 	return page.EachPage(func(p interface{}, lastPage bool) bool {
 		return fn(p.(*ListJobsOutput), lastPage)
 	})
+}
+
+const opListNetworkProfiles = "ListNetworkProfiles"
+
+// ListNetworkProfilesRequest generates a "aws/request.Request" representing the
+// client's request for the ListNetworkProfiles operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See ListNetworkProfiles for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the ListNetworkProfiles method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the ListNetworkProfilesRequest method.
+//    req, resp := client.ListNetworkProfilesRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/ListNetworkProfiles
+func (c *DeviceFarm) ListNetworkProfilesRequest(input *ListNetworkProfilesInput) (req *request.Request, output *ListNetworkProfilesOutput) {
+	op := &request.Operation{
+		Name:       opListNetworkProfiles,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &ListNetworkProfilesInput{}
+	}
+
+	output = &ListNetworkProfilesOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// ListNetworkProfiles API operation for AWS Device Farm.
+//
+// Returns the list of available network profiles.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Device Farm's
+// API operation ListNetworkProfiles for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeArgumentException "ArgumentException"
+//   An invalid argument was specified.
+//
+//   * ErrCodeNotFoundException "NotFoundException"
+//   The specified entity was not found.
+//
+//   * ErrCodeLimitExceededException "LimitExceededException"
+//   A limit was exceeded.
+//
+//   * ErrCodeServiceAccountException "ServiceAccountException"
+//   There was a problem with the service account.
+//
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/ListNetworkProfiles
+func (c *DeviceFarm) ListNetworkProfiles(input *ListNetworkProfilesInput) (*ListNetworkProfilesOutput, error) {
+	req, out := c.ListNetworkProfilesRequest(input)
+	err := req.Send()
+	return out, err
 }
 
 const opListOfferingTransactions = "ListOfferingTransactions"
@@ -2172,20 +2468,20 @@ func (c *DeviceFarm) ListOfferingTransactionsRequest(input *ListOfferingTransact
 // API operation ListOfferingTransactions for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * NotEligibleException
+//   * ErrCodeNotEligibleException "NotEligibleException"
 //   Exception gets thrown when a user is not eligible to perform the specified
 //   transaction.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/ListOfferingTransactions
@@ -2286,20 +2582,20 @@ func (c *DeviceFarm) ListOfferingsRequest(input *ListOfferingsInput) (req *reque
 // API operation ListOfferings for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * NotEligibleException
+//   * ErrCodeNotEligibleException "NotEligibleException"
 //   Exception gets thrown when a user is not eligible to perform the specified
 //   transaction.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/ListOfferings
@@ -2395,16 +2691,16 @@ func (c *DeviceFarm) ListProjectsRequest(input *ListProjectsInput) (req *request
 // API operation ListProjects for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/ListProjects
@@ -2494,16 +2790,16 @@ func (c *DeviceFarm) ListRemoteAccessSessionsRequest(input *ListRemoteAccessSess
 // API operation ListRemoteAccessSessions for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/ListRemoteAccessSessions
@@ -2574,16 +2870,16 @@ func (c *DeviceFarm) ListRunsRequest(input *ListRunsInput) (req *request.Request
 // API operation ListRuns for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/ListRuns
@@ -2679,16 +2975,16 @@ func (c *DeviceFarm) ListSamplesRequest(input *ListSamplesInput) (req *request.R
 // API operation ListSamples for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/ListSamples
@@ -2784,16 +3080,16 @@ func (c *DeviceFarm) ListSuitesRequest(input *ListSuitesInput) (req *request.Req
 // API operation ListSuites for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/ListSuites
@@ -2889,16 +3185,16 @@ func (c *DeviceFarm) ListTestsRequest(input *ListTestsInput) (req *request.Reque
 // API operation ListTests for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/ListTests
@@ -2994,16 +3290,16 @@ func (c *DeviceFarm) ListUniqueProblemsRequest(input *ListUniqueProblemsInput) (
 // API operation ListUniqueProblems for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/ListUniqueProblems
@@ -3099,16 +3395,16 @@ func (c *DeviceFarm) ListUploadsRequest(input *ListUploadsInput) (req *request.R
 // API operation ListUploads for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/ListUploads
@@ -3203,20 +3499,20 @@ func (c *DeviceFarm) PurchaseOfferingRequest(input *PurchaseOfferingInput) (req 
 // API operation PurchaseOffering for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * NotEligibleException
+//   * ErrCodeNotEligibleException "NotEligibleException"
 //   Exception gets thrown when a user is not eligible to perform the specified
 //   transaction.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/PurchaseOffering
@@ -3285,20 +3581,20 @@ func (c *DeviceFarm) RenewOfferingRequest(input *RenewOfferingInput) (req *reque
 // API operation RenewOffering for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * NotEligibleException
+//   * ErrCodeNotEligibleException "NotEligibleException"
 //   Exception gets thrown when a user is not eligible to perform the specified
 //   transaction.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/RenewOffering
@@ -3363,19 +3659,19 @@ func (c *DeviceFarm) ScheduleRunRequest(input *ScheduleRunInput) (req *request.R
 // API operation ScheduleRun for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * IdempotencyException
+//   * ErrCodeIdempotencyException "IdempotencyException"
 //   An entity with the same name already exists.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/ScheduleRun
@@ -3440,16 +3736,16 @@ func (c *DeviceFarm) StopRemoteAccessSessionRequest(input *StopRemoteAccessSessi
 // API operation StopRemoteAccessSession for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/StopRemoteAccessSession
@@ -3519,16 +3815,16 @@ func (c *DeviceFarm) StopRunRequest(input *StopRunInput) (req *request.Request, 
 // API operation StopRun for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/StopRun
@@ -3595,21 +3891,95 @@ func (c *DeviceFarm) UpdateDevicePoolRequest(input *UpdateDevicePoolInput) (req 
 // API operation UpdateDevicePool for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/UpdateDevicePool
 func (c *DeviceFarm) UpdateDevicePool(input *UpdateDevicePoolInput) (*UpdateDevicePoolOutput, error) {
 	req, out := c.UpdateDevicePoolRequest(input)
+	err := req.Send()
+	return out, err
+}
+
+const opUpdateNetworkProfile = "UpdateNetworkProfile"
+
+// UpdateNetworkProfileRequest generates a "aws/request.Request" representing the
+// client's request for the UpdateNetworkProfile operation. The "output" return
+// value can be used to capture response data after the request's "Send" method
+// is called.
+//
+// See UpdateNetworkProfile for usage and error information.
+//
+// Creating a request object using this method should be used when you want to inject
+// custom logic into the request's lifecycle using a custom handler, or if you want to
+// access properties on the request object before or after sending the request. If
+// you just want the service response, call the UpdateNetworkProfile method directly
+// instead.
+//
+// Note: You must call the "Send" method on the returned request object in order
+// to execute the request.
+//
+//    // Example sending a request using the UpdateNetworkProfileRequest method.
+//    req, resp := client.UpdateNetworkProfileRequest(params)
+//
+//    err := req.Send()
+//    if err == nil { // resp is now filled
+//        fmt.Println(resp)
+//    }
+//
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/UpdateNetworkProfile
+func (c *DeviceFarm) UpdateNetworkProfileRequest(input *UpdateNetworkProfileInput) (req *request.Request, output *UpdateNetworkProfileOutput) {
+	op := &request.Operation{
+		Name:       opUpdateNetworkProfile,
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &UpdateNetworkProfileInput{}
+	}
+
+	output = &UpdateNetworkProfileOutput{}
+	req = c.newRequest(op, input, output)
+	return
+}
+
+// UpdateNetworkProfile API operation for AWS Device Farm.
+//
+// Updates the network profile with specific settings.
+//
+// Returns awserr.Error for service API and SDK errors. Use runtime type assertions
+// with awserr.Error's Code and Message methods to get detailed information about
+// the error.
+//
+// See the AWS API reference guide for AWS Device Farm's
+// API operation UpdateNetworkProfile for usage and error information.
+//
+// Returned Error Codes:
+//   * ErrCodeArgumentException "ArgumentException"
+//   An invalid argument was specified.
+//
+//   * ErrCodeNotFoundException "NotFoundException"
+//   The specified entity was not found.
+//
+//   * ErrCodeLimitExceededException "LimitExceededException"
+//   A limit was exceeded.
+//
+//   * ErrCodeServiceAccountException "ServiceAccountException"
+//   There was a problem with the service account.
+//
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/UpdateNetworkProfile
+func (c *DeviceFarm) UpdateNetworkProfile(input *UpdateNetworkProfileInput) (*UpdateNetworkProfileOutput, error) {
+	req, out := c.UpdateNetworkProfileRequest(input)
 	err := req.Send()
 	return out, err
 }
@@ -3669,16 +4039,16 @@ func (c *DeviceFarm) UpdateProjectRequest(input *UpdateProjectInput) (req *reque
 // API operation UpdateProject for usage and error information.
 //
 // Returned Error Codes:
-//   * ArgumentException
+//   * ErrCodeArgumentException "ArgumentException"
 //   An invalid argument was specified.
 //
-//   * NotFoundException
+//   * ErrCodeNotFoundException "NotFoundException"
 //   The specified entity was not found.
 //
-//   * LimitExceededException
+//   * ErrCodeLimitExceededException "LimitExceededException"
 //   A limit was exceeded.
 //
-//   * ServiceAccountException
+//   * ErrCodeServiceAccountException "ServiceAccountException"
 //   There was a problem with the service account.
 //
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/UpdateProject
@@ -3695,6 +4065,13 @@ type AccountSettings struct {
 
 	// The AWS account number specified in the AccountSettings container.
 	AwsAccountNumber *string `locationName:"awsAccountNumber" min:"2" type:"string"`
+
+	// The default number of minutes (at the account level) a test run will execute
+	// before it times out. Default value is 60 minutes.
+	DefaultJobTimeoutMinutes *int64 `locationName:"defaultJobTimeoutMinutes" type:"integer"`
+
+	// The maximum number of minutes a test run will execute before it times out.
+	MaxJobTimeoutMinutes *int64 `locationName:"maxJobTimeoutMinutes" type:"integer"`
 
 	// Returns the unmetered devices you have purchased or want to purchase.
 	UnmeteredDevices map[string]*int64 `locationName:"unmeteredDevices" type:"map"`
@@ -3717,6 +4094,18 @@ func (s AccountSettings) GoString() string {
 // SetAwsAccountNumber sets the AwsAccountNumber field's value.
 func (s *AccountSettings) SetAwsAccountNumber(v string) *AccountSettings {
 	s.AwsAccountNumber = &v
+	return s
+}
+
+// SetDefaultJobTimeoutMinutes sets the DefaultJobTimeoutMinutes field's value.
+func (s *AccountSettings) SetDefaultJobTimeoutMinutes(v int64) *AccountSettings {
+	s.DefaultJobTimeoutMinutes = &v
+	return s
+}
+
+// SetMaxJobTimeoutMinutes sets the MaxJobTimeoutMinutes field's value.
+func (s *AccountSettings) SetMaxJobTimeoutMinutes(v int64) *AccountSettings {
+	s.MaxJobTimeoutMinutes = &v
 	return s
 }
 
@@ -4073,10 +4462,190 @@ func (s *CreateDevicePoolOutput) SetDevicePool(v *DevicePool) *CreateDevicePoolO
 	return s
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/CreateNetworkProfileRequest
+type CreateNetworkProfileInput struct {
+	_ struct{} `type:"structure"`
+
+	// The description of the network profile.
+	Description *string `locationName:"description" type:"string"`
+
+	// The data throughput rate in bits per second, as an integer from 0 to 104857600.
+	DownlinkBandwidthBits *int64 `locationName:"downlinkBandwidthBits" type:"long"`
+
+	// Delay time for all packets to destination in milliseconds as an integer from
+	// 0 to 2000.
+	DownlinkDelayMs *int64 `locationName:"downlinkDelayMs" type:"long"`
+
+	// Time variation in the delay of received packets in milliseconds as an integer
+	// from 0 to 2000.
+	DownlinkJitterMs *int64 `locationName:"downlinkJitterMs" type:"long"`
+
+	// Proportion of received packets that fail to arrive from 0 to 100 percent.
+	DownlinkLossPercent *int64 `locationName:"downlinkLossPercent" type:"integer"`
+
+	// The name you wish to specify for the new network profile.
+	//
+	// Name is a required field
+	Name *string `locationName:"name" type:"string" required:"true"`
+
+	// The Amazon Resource Name (ARN) of the project for which you want to create
+	// a network profile.
+	//
+	// ProjectArn is a required field
+	ProjectArn *string `locationName:"projectArn" min:"32" type:"string" required:"true"`
+
+	// The type of network profile you wish to create. Valid values are listed below.
+	Type *string `locationName:"type" type:"string" enum:"NetworkProfileType"`
+
+	// The data throughput rate in bits per second, as an integer from 0 to 104857600.
+	UplinkBandwidthBits *int64 `locationName:"uplinkBandwidthBits" type:"long"`
+
+	// Delay time for all packets to destination in milliseconds as an integer from
+	// 0 to 2000.
+	UplinkDelayMs *int64 `locationName:"uplinkDelayMs" type:"long"`
+
+	// Time variation in the delay of received packets in milliseconds as an integer
+	// from 0 to 2000.
+	UplinkJitterMs *int64 `locationName:"uplinkJitterMs" type:"long"`
+
+	// Proportion of transmitted packets that fail to arrive from 0 to 100 percent.
+	UplinkLossPercent *int64 `locationName:"uplinkLossPercent" type:"integer"`
+}
+
+// String returns the string representation
+func (s CreateNetworkProfileInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateNetworkProfileInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *CreateNetworkProfileInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "CreateNetworkProfileInput"}
+	if s.Name == nil {
+		invalidParams.Add(request.NewErrParamRequired("Name"))
+	}
+	if s.ProjectArn == nil {
+		invalidParams.Add(request.NewErrParamRequired("ProjectArn"))
+	}
+	if s.ProjectArn != nil && len(*s.ProjectArn) < 32 {
+		invalidParams.Add(request.NewErrParamMinLen("ProjectArn", 32))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetDescription sets the Description field's value.
+func (s *CreateNetworkProfileInput) SetDescription(v string) *CreateNetworkProfileInput {
+	s.Description = &v
+	return s
+}
+
+// SetDownlinkBandwidthBits sets the DownlinkBandwidthBits field's value.
+func (s *CreateNetworkProfileInput) SetDownlinkBandwidthBits(v int64) *CreateNetworkProfileInput {
+	s.DownlinkBandwidthBits = &v
+	return s
+}
+
+// SetDownlinkDelayMs sets the DownlinkDelayMs field's value.
+func (s *CreateNetworkProfileInput) SetDownlinkDelayMs(v int64) *CreateNetworkProfileInput {
+	s.DownlinkDelayMs = &v
+	return s
+}
+
+// SetDownlinkJitterMs sets the DownlinkJitterMs field's value.
+func (s *CreateNetworkProfileInput) SetDownlinkJitterMs(v int64) *CreateNetworkProfileInput {
+	s.DownlinkJitterMs = &v
+	return s
+}
+
+// SetDownlinkLossPercent sets the DownlinkLossPercent field's value.
+func (s *CreateNetworkProfileInput) SetDownlinkLossPercent(v int64) *CreateNetworkProfileInput {
+	s.DownlinkLossPercent = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *CreateNetworkProfileInput) SetName(v string) *CreateNetworkProfileInput {
+	s.Name = &v
+	return s
+}
+
+// SetProjectArn sets the ProjectArn field's value.
+func (s *CreateNetworkProfileInput) SetProjectArn(v string) *CreateNetworkProfileInput {
+	s.ProjectArn = &v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *CreateNetworkProfileInput) SetType(v string) *CreateNetworkProfileInput {
+	s.Type = &v
+	return s
+}
+
+// SetUplinkBandwidthBits sets the UplinkBandwidthBits field's value.
+func (s *CreateNetworkProfileInput) SetUplinkBandwidthBits(v int64) *CreateNetworkProfileInput {
+	s.UplinkBandwidthBits = &v
+	return s
+}
+
+// SetUplinkDelayMs sets the UplinkDelayMs field's value.
+func (s *CreateNetworkProfileInput) SetUplinkDelayMs(v int64) *CreateNetworkProfileInput {
+	s.UplinkDelayMs = &v
+	return s
+}
+
+// SetUplinkJitterMs sets the UplinkJitterMs field's value.
+func (s *CreateNetworkProfileInput) SetUplinkJitterMs(v int64) *CreateNetworkProfileInput {
+	s.UplinkJitterMs = &v
+	return s
+}
+
+// SetUplinkLossPercent sets the UplinkLossPercent field's value.
+func (s *CreateNetworkProfileInput) SetUplinkLossPercent(v int64) *CreateNetworkProfileInput {
+	s.UplinkLossPercent = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/CreateNetworkProfileResult
+type CreateNetworkProfileOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The network profile that is returned by the create network profile request.
+	NetworkProfile *NetworkProfile `locationName:"networkProfile" type:"structure"`
+}
+
+// String returns the string representation
+func (s CreateNetworkProfileOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s CreateNetworkProfileOutput) GoString() string {
+	return s.String()
+}
+
+// SetNetworkProfile sets the NetworkProfile field's value.
+func (s *CreateNetworkProfileOutput) SetNetworkProfile(v *NetworkProfile) *CreateNetworkProfileOutput {
+	s.NetworkProfile = v
+	return s
+}
+
 // Represents a request to the create project operation.
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/CreateProjectRequest
 type CreateProjectInput struct {
 	_ struct{} `type:"structure"`
+
+	// Sets the execution timeout value (in minutes) for a project. All test runs
+	// in this project will use the specified execution timeout value unless overridden
+	// when scheduling a run.
+	DefaultJobTimeoutMinutes *int64 `locationName:"defaultJobTimeoutMinutes" type:"integer"`
 
 	// The project's name.
 	//
@@ -4105,6 +4674,12 @@ func (s *CreateProjectInput) Validate() error {
 		return invalidParams
 	}
 	return nil
+}
+
+// SetDefaultJobTimeoutMinutes sets the DefaultJobTimeoutMinutes field's value.
+func (s *CreateProjectInput) SetDefaultJobTimeoutMinutes(v int64) *CreateProjectInput {
+	s.DefaultJobTimeoutMinutes = &v
+	return s
 }
 
 // SetName sets the Name field's value.
@@ -4478,6 +5053,63 @@ func (s DeleteDevicePoolOutput) GoString() string {
 	return s.String()
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/DeleteNetworkProfileRequest
+type DeleteNetworkProfileInput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the network profile you want to delete.
+	//
+	// Arn is a required field
+	Arn *string `locationName:"arn" min:"32" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s DeleteNetworkProfileInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteNetworkProfileInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *DeleteNetworkProfileInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "DeleteNetworkProfileInput"}
+	if s.Arn == nil {
+		invalidParams.Add(request.NewErrParamRequired("Arn"))
+	}
+	if s.Arn != nil && len(*s.Arn) < 32 {
+		invalidParams.Add(request.NewErrParamMinLen("Arn", 32))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetArn sets the Arn field's value.
+func (s *DeleteNetworkProfileInput) SetArn(v string) *DeleteNetworkProfileInput {
+	s.Arn = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/DeleteNetworkProfileResult
+type DeleteNetworkProfileOutput struct {
+	_ struct{} `type:"structure"`
+}
+
+// String returns the string representation
+func (s DeleteNetworkProfileOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s DeleteNetworkProfileOutput) GoString() string {
+	return s.String()
+}
+
 // Represents a request to the delete project operation.
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/DeleteProjectRequest
 type DeleteProjectInput struct {
@@ -4784,8 +5416,7 @@ type Device struct {
 	// Specifies whether remote access has been enabled for the specified device.
 	RemoteAccessEnabled *bool `locationName:"remoteAccessEnabled" type:"boolean"`
 
-	// Represents the screen resolution of a device in height and width, expressed
-	// in pixels.
+	// The resolution of the device.
 	Resolution *Resolution `locationName:"resolution" type:"structure"`
 }
 
@@ -5024,7 +5655,7 @@ type DevicePoolCompatibilityResult struct {
 	// Whether the result was compatible with the device pool.
 	Compatible *bool `locationName:"compatible" type:"boolean"`
 
-	// Represents a device type that an app is tested against.
+	// The device (phone or tablet) that you wish to return information about.
 	Device *Device `locationName:"device" type:"structure"`
 
 	// Information about the compatibility.
@@ -5059,6 +5690,32 @@ func (s *DevicePoolCompatibilityResult) SetIncompatibilityMessages(v []*Incompat
 	return s
 }
 
+// Represents configuration information about a test run, such as the execution
+// timeout (in minutes).
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/ExecutionConfiguration
+type ExecutionConfiguration struct {
+	_ struct{} `type:"structure"`
+
+	// The number of minutes a test run will execute before it times out.
+	JobTimeoutMinutes *int64 `locationName:"jobTimeoutMinutes" type:"integer"`
+}
+
+// String returns the string representation
+func (s ExecutionConfiguration) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ExecutionConfiguration) GoString() string {
+	return s.String()
+}
+
+// SetJobTimeoutMinutes sets the JobTimeoutMinutes field's value.
+func (s *ExecutionConfiguration) SetJobTimeoutMinutes(v int64) *ExecutionConfiguration {
+	s.JobTimeoutMinutes = &v
+	return s
+}
+
 // Represents the request sent to retrieve the account settings.
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/GetAccountSettingsRequest
 type GetAccountSettingsInput struct {
@@ -5081,7 +5738,7 @@ func (s GetAccountSettingsInput) GoString() string {
 type GetAccountSettingsOutput struct {
 	_ struct{} `type:"structure"`
 
-	// A container for account-level settings within AWS Device Farm.
+	// The account settings.
 	AccountSettings *AccountSettings `locationName:"accountSettings" type:"structure"`
 }
 
@@ -5149,7 +5806,7 @@ func (s *GetDeviceInput) SetArn(v string) *GetDeviceInput {
 type GetDeviceOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Represents a device type that an app is tested against.
+	// An object containing information about the requested device.
 	Device *Device `locationName:"device" type:"structure"`
 }
 
@@ -5347,7 +6004,7 @@ func (s *GetDevicePoolInput) SetArn(v string) *GetDevicePoolInput {
 type GetDevicePoolOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Represents a collection of device types.
+	// An object containing information about the requested device pool.
 	DevicePool *DevicePool `locationName:"devicePool" type:"structure"`
 }
 
@@ -5415,7 +6072,7 @@ func (s *GetJobInput) SetArn(v string) *GetJobInput {
 type GetJobOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Represents a device.
+	// An object containing information about the requested job.
 	Job *Job `locationName:"job" type:"structure"`
 }
 
@@ -5432,6 +6089,73 @@ func (s GetJobOutput) GoString() string {
 // SetJob sets the Job field's value.
 func (s *GetJobOutput) SetJob(v *Job) *GetJobOutput {
 	s.Job = v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/GetNetworkProfileRequest
+type GetNetworkProfileInput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the network profile you want to return
+	// information about.
+	//
+	// Arn is a required field
+	Arn *string `locationName:"arn" min:"32" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s GetNetworkProfileInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetNetworkProfileInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *GetNetworkProfileInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "GetNetworkProfileInput"}
+	if s.Arn == nil {
+		invalidParams.Add(request.NewErrParamRequired("Arn"))
+	}
+	if s.Arn != nil && len(*s.Arn) < 32 {
+		invalidParams.Add(request.NewErrParamMinLen("Arn", 32))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetArn sets the Arn field's value.
+func (s *GetNetworkProfileInput) SetArn(v string) *GetNetworkProfileInput {
+	s.Arn = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/GetNetworkProfileResult
+type GetNetworkProfileOutput struct {
+	_ struct{} `type:"structure"`
+
+	// The network profile.
+	NetworkProfile *NetworkProfile `locationName:"networkProfile" type:"structure"`
+}
+
+// String returns the string representation
+func (s GetNetworkProfileOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s GetNetworkProfileOutput) GoString() string {
+	return s.String()
+}
+
+// SetNetworkProfile sets the NetworkProfile field's value.
+func (s *GetNetworkProfileOutput) SetNetworkProfile(v *NetworkProfile) *GetNetworkProfileOutput {
+	s.NetworkProfile = v
 	return s
 }
 
@@ -5567,8 +6291,7 @@ func (s *GetProjectInput) SetArn(v string) *GetProjectInput {
 type GetProjectOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Represents an operating-system neutral workspace for running and managing
-	// tests.
+	// The project you wish to get information about.
 	Project *Project `locationName:"project" type:"structure"`
 }
 
@@ -5707,7 +6430,7 @@ func (s *GetRunInput) SetArn(v string) *GetRunInput {
 type GetRunOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Represents an app on a set of devices with a specific test and configuration.
+	// The run you wish to get results from.
 	Run *Run `locationName:"run" type:"structure"`
 }
 
@@ -5775,7 +6498,7 @@ func (s *GetSuiteInput) SetArn(v string) *GetSuiteInput {
 type GetSuiteOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Represents a collection of one or more tests.
+	// A collection of one or more tests.
 	Suite *Suite `locationName:"suite" type:"structure"`
 }
 
@@ -5843,7 +6566,7 @@ func (s *GetTestInput) SetArn(v string) *GetTestInput {
 type GetTestOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Represents a condition that is evaluated.
+	// A test condition that is evaluated.
 	Test *Test `locationName:"test" type:"structure"`
 }
 
@@ -6044,7 +6767,7 @@ func (s *InstallToRemoteAccessSessionInput) SetRemoteAccessSessionArn(v string) 
 type InstallToRemoteAccessSessionOutput struct {
 	_ struct{} `type:"structure"`
 
-	// An app or a set of one or more tests to upload or that have been uploaded.
+	// An app to upload or that has been uploaded.
 	AppUpload *Upload `locationName:"appUpload" type:"structure"`
 }
 
@@ -6078,7 +6801,7 @@ type Job struct {
 	// When the job was created.
 	Created *time.Time `locationName:"created" type:"timestamp" timestampFormat:"unix"`
 
-	// Represents a device type that an app is tested against.
+	// The device (phone or tablet).
 	Device *Device `locationName:"device" type:"structure"`
 
 	// Represents the total (metered or unmetered) minutes used by the job.
@@ -6653,6 +7376,106 @@ func (s *ListJobsOutput) SetJobs(v []*Job) *ListJobsOutput {
 
 // SetNextToken sets the NextToken field's value.
 func (s *ListJobsOutput) SetNextToken(v string) *ListJobsOutput {
+	s.NextToken = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/ListNetworkProfilesRequest
+type ListNetworkProfilesInput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the project for which you want to list
+	// network profiles.
+	//
+	// Arn is a required field
+	Arn *string `locationName:"arn" min:"32" type:"string" required:"true"`
+
+	// An identifier that was returned from the previous call to this operation,
+	// which can be used to return the next set of items in the list.
+	NextToken *string `locationName:"nextToken" min:"4" type:"string"`
+
+	// The type of network profile you wish to return information about. Valid values
+	// are listed below.
+	Type *string `locationName:"type" type:"string" enum:"NetworkProfileType"`
+}
+
+// String returns the string representation
+func (s ListNetworkProfilesInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListNetworkProfilesInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *ListNetworkProfilesInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "ListNetworkProfilesInput"}
+	if s.Arn == nil {
+		invalidParams.Add(request.NewErrParamRequired("Arn"))
+	}
+	if s.Arn != nil && len(*s.Arn) < 32 {
+		invalidParams.Add(request.NewErrParamMinLen("Arn", 32))
+	}
+	if s.NextToken != nil && len(*s.NextToken) < 4 {
+		invalidParams.Add(request.NewErrParamMinLen("NextToken", 4))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetArn sets the Arn field's value.
+func (s *ListNetworkProfilesInput) SetArn(v string) *ListNetworkProfilesInput {
+	s.Arn = &v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListNetworkProfilesInput) SetNextToken(v string) *ListNetworkProfilesInput {
+	s.NextToken = &v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *ListNetworkProfilesInput) SetType(v string) *ListNetworkProfilesInput {
+	s.Type = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/ListNetworkProfilesResult
+type ListNetworkProfilesOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of the available network profiles.
+	NetworkProfiles []*NetworkProfile `locationName:"networkProfiles" type:"list"`
+
+	// An identifier that was returned from the previous call to this operation,
+	// which can be used to return the next set of items in the list.
+	NextToken *string `locationName:"nextToken" min:"4" type:"string"`
+}
+
+// String returns the string representation
+func (s ListNetworkProfilesOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s ListNetworkProfilesOutput) GoString() string {
+	return s.String()
+}
+
+// SetNetworkProfiles sets the NetworkProfiles field's value.
+func (s *ListNetworkProfilesOutput) SetNetworkProfiles(v []*NetworkProfile) *ListNetworkProfilesOutput {
+	s.NetworkProfiles = v
+	return s
+}
+
+// SetNextToken sets the NextToken field's value.
+func (s *ListNetworkProfilesOutput) SetNextToken(v string) *ListNetworkProfilesOutput {
 	s.NextToken = &v
 	return s
 }
@@ -7651,6 +8474,134 @@ func (s *MonetaryAmount) SetCurrencyCode(v string) *MonetaryAmount {
 	return s
 }
 
+// An array of settings that describes characteristics of a network profile.
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/NetworkProfile
+type NetworkProfile struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the network profile.
+	Arn *string `locationName:"arn" min:"32" type:"string"`
+
+	// The description of the network profile.
+	Description *string `locationName:"description" type:"string"`
+
+	// The data throughput rate in bits per second, as an integer from 0 to 104857600.
+	DownlinkBandwidthBits *int64 `locationName:"downlinkBandwidthBits" type:"long"`
+
+	// Delay time for all packets to destination in milliseconds as an integer from
+	// 0 to 2000.
+	DownlinkDelayMs *int64 `locationName:"downlinkDelayMs" type:"long"`
+
+	// Time variation in the delay of received packets in milliseconds as an integer
+	// from 0 to 2000.
+	DownlinkJitterMs *int64 `locationName:"downlinkJitterMs" type:"long"`
+
+	// Proportion of received packets that fail to arrive from 0 to 100 percent.
+	DownlinkLossPercent *int64 `locationName:"downlinkLossPercent" type:"integer"`
+
+	// The name of the network profile.
+	Name *string `locationName:"name" type:"string"`
+
+	// The type of network profile. Valid values are listed below.
+	Type *string `locationName:"type" type:"string" enum:"NetworkProfileType"`
+
+	// The data throughput rate in bits per second, as an integer from 0 to 104857600.
+	UplinkBandwidthBits *int64 `locationName:"uplinkBandwidthBits" type:"long"`
+
+	// Delay time for all packets to destination in milliseconds as an integer from
+	// 0 to 2000.
+	UplinkDelayMs *int64 `locationName:"uplinkDelayMs" type:"long"`
+
+	// Time variation in the delay of received packets in milliseconds as an integer
+	// from 0 to 2000.
+	UplinkJitterMs *int64 `locationName:"uplinkJitterMs" type:"long"`
+
+	// Proportion of transmitted packets that fail to arrive from 0 to 100 percent.
+	UplinkLossPercent *int64 `locationName:"uplinkLossPercent" type:"integer"`
+}
+
+// String returns the string representation
+func (s NetworkProfile) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s NetworkProfile) GoString() string {
+	return s.String()
+}
+
+// SetArn sets the Arn field's value.
+func (s *NetworkProfile) SetArn(v string) *NetworkProfile {
+	s.Arn = &v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *NetworkProfile) SetDescription(v string) *NetworkProfile {
+	s.Description = &v
+	return s
+}
+
+// SetDownlinkBandwidthBits sets the DownlinkBandwidthBits field's value.
+func (s *NetworkProfile) SetDownlinkBandwidthBits(v int64) *NetworkProfile {
+	s.DownlinkBandwidthBits = &v
+	return s
+}
+
+// SetDownlinkDelayMs sets the DownlinkDelayMs field's value.
+func (s *NetworkProfile) SetDownlinkDelayMs(v int64) *NetworkProfile {
+	s.DownlinkDelayMs = &v
+	return s
+}
+
+// SetDownlinkJitterMs sets the DownlinkJitterMs field's value.
+func (s *NetworkProfile) SetDownlinkJitterMs(v int64) *NetworkProfile {
+	s.DownlinkJitterMs = &v
+	return s
+}
+
+// SetDownlinkLossPercent sets the DownlinkLossPercent field's value.
+func (s *NetworkProfile) SetDownlinkLossPercent(v int64) *NetworkProfile {
+	s.DownlinkLossPercent = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *NetworkProfile) SetName(v string) *NetworkProfile {
+	s.Name = &v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *NetworkProfile) SetType(v string) *NetworkProfile {
+	s.Type = &v
+	return s
+}
+
+// SetUplinkBandwidthBits sets the UplinkBandwidthBits field's value.
+func (s *NetworkProfile) SetUplinkBandwidthBits(v int64) *NetworkProfile {
+	s.UplinkBandwidthBits = &v
+	return s
+}
+
+// SetUplinkDelayMs sets the UplinkDelayMs field's value.
+func (s *NetworkProfile) SetUplinkDelayMs(v int64) *NetworkProfile {
+	s.UplinkDelayMs = &v
+	return s
+}
+
+// SetUplinkJitterMs sets the UplinkJitterMs field's value.
+func (s *NetworkProfile) SetUplinkJitterMs(v int64) *NetworkProfile {
+	s.UplinkJitterMs = &v
+	return s
+}
+
+// SetUplinkLossPercent sets the UplinkLossPercent field's value.
+func (s *NetworkProfile) SetUplinkLossPercent(v int64) *NetworkProfile {
+	s.UplinkLossPercent = &v
+	return s
+}
+
 // Represents the metadata of a device offering.
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/Offering
 type Offering struct {
@@ -7957,6 +8908,10 @@ type Project struct {
 	// When the project was created.
 	Created *time.Time `locationName:"created" type:"timestamp" timestampFormat:"unix"`
 
+	// The default number of minutes (at the project level) a test run will execute
+	// before it times out. Default value is 60 minutes.
+	DefaultJobTimeoutMinutes *int64 `locationName:"defaultJobTimeoutMinutes" type:"integer"`
+
 	// The project's name.
 	Name *string `locationName:"name" type:"string"`
 }
@@ -7980,6 +8935,12 @@ func (s *Project) SetArn(v string) *Project {
 // SetCreated sets the Created field's value.
 func (s *Project) SetCreated(v time.Time) *Project {
 	s.Created = &v
+	return s
+}
+
+// SetDefaultJobTimeoutMinutes sets the DefaultJobTimeoutMinutes field's value.
+func (s *Project) SetDefaultJobTimeoutMinutes(v int64) *Project {
+	s.DefaultJobTimeoutMinutes = &v
 	return s
 }
 
@@ -8164,11 +9125,11 @@ type RemoteAccessSession struct {
 	// The date and time the remote access session was created.
 	Created *time.Time `locationName:"created" type:"timestamp" timestampFormat:"unix"`
 
-	// Represents a device type that an app is tested against.
+	// The device (phone or tablet) used in the remote access session.
 	Device *Device `locationName:"device" type:"structure"`
 
-	// Represents the total (metered or unmetered) minutes used by the resource
-	// to run tests. Contains the sum of minutes consumed by all children.
+	// The number of minutes a device is used in a remote access sesssion (including
+	// setup and teardown minutes).
 	DeviceMinutes *DeviceMinutes `locationName:"deviceMinutes" type:"structure"`
 
 	// The endpoint for the remote access sesssion.
@@ -8507,6 +9468,9 @@ type Run struct {
 	// The run's name.
 	Name *string `locationName:"name" type:"string"`
 
+	// The network profile being used for a test run.
+	NetworkProfile *NetworkProfile `locationName:"networkProfile" type:"structure"`
+
 	// The run's platform.
 	//
 	// Allowed values include:
@@ -8658,6 +9622,12 @@ func (s *Run) SetMessage(v string) *Run {
 // SetName sets the Name field's value.
 func (s *Run) SetName(v string) *Run {
 	s.Name = &v
+	return s
+}
+
+// SetNetworkProfile sets the NetworkProfile field's value.
+func (s *Run) SetNetworkProfile(v *NetworkProfile) *Run {
+	s.NetworkProfile = v
 	return s
 }
 
@@ -8908,6 +9878,10 @@ type ScheduleRunInput struct {
 	// DevicePoolArn is a required field
 	DevicePoolArn *string `locationName:"devicePoolArn" min:"32" type:"string" required:"true"`
 
+	// Specifies configuration information about a test run, such as the execution
+	// timeout (in minutes).
+	ExecutionConfiguration *ExecutionConfiguration `locationName:"executionConfiguration" type:"structure"`
+
 	// The name for the run to be scheduled.
 	Name *string `locationName:"name" type:"string"`
 
@@ -8985,6 +9959,12 @@ func (s *ScheduleRunInput) SetConfiguration(v *ScheduleRunConfiguration) *Schedu
 // SetDevicePoolArn sets the DevicePoolArn field's value.
 func (s *ScheduleRunInput) SetDevicePoolArn(v string) *ScheduleRunInput {
 	s.DevicePoolArn = &v
+	return s
+}
+
+// SetExecutionConfiguration sets the ExecutionConfiguration field's value.
+func (s *ScheduleRunInput) SetExecutionConfiguration(v *ExecutionConfiguration) *ScheduleRunInput {
+	s.ExecutionConfiguration = v
 	return s
 }
 
@@ -9252,7 +10232,7 @@ func (s *StopRunInput) SetArn(v string) *StopRunInput {
 type StopRunOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Represents an app on a set of devices with a specific test and configuration.
+	// The run that was stopped.
 	Run *Run `locationName:"run" type:"structure"`
 }
 
@@ -9750,7 +10730,7 @@ func (s *UpdateDevicePoolInput) SetRules(v []*Rule) *UpdateDevicePoolInput {
 type UpdateDevicePoolOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Represents a collection of device types.
+	// The device pool you just updated.
 	DevicePool *DevicePool `locationName:"devicePool" type:"structure"`
 }
 
@@ -9770,6 +10750,177 @@ func (s *UpdateDevicePoolOutput) SetDevicePool(v *DevicePool) *UpdateDevicePoolO
 	return s
 }
 
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/UpdateNetworkProfileRequest
+type UpdateNetworkProfileInput struct {
+	_ struct{} `type:"structure"`
+
+	// The Amazon Resource Name (ARN) of the project that you wish to update network
+	// profile settings.
+	//
+	// Arn is a required field
+	Arn *string `locationName:"arn" min:"32" type:"string" required:"true"`
+
+	// The descriptoin of the network profile about which you are returning information.
+	Description *string `locationName:"description" type:"string"`
+
+	// The data throughput rate in bits per second, as an integer from 0 to 104857600.
+	DownlinkBandwidthBits *int64 `locationName:"downlinkBandwidthBits" type:"long"`
+
+	// Delay time for all packets to destination in milliseconds as an integer from
+	// 0 to 2000.
+	DownlinkDelayMs *int64 `locationName:"downlinkDelayMs" type:"long"`
+
+	// Time variation in the delay of received packets in milliseconds as an integer
+	// from 0 to 2000.
+	DownlinkJitterMs *int64 `locationName:"downlinkJitterMs" type:"long"`
+
+	// Proportion of received packets that fail to arrive from 0 to 100 percent.
+	DownlinkLossPercent *int64 `locationName:"downlinkLossPercent" type:"integer"`
+
+	// The name of the network profile about which you are returning information.
+	Name *string `locationName:"name" type:"string"`
+
+	// The type of network profile you wish to return information about. Valid values
+	// are listed below.
+	Type *string `locationName:"type" type:"string" enum:"NetworkProfileType"`
+
+	// The data throughput rate in bits per second, as an integer from 0 to 104857600.
+	UplinkBandwidthBits *int64 `locationName:"uplinkBandwidthBits" type:"long"`
+
+	// Delay time for all packets to destination in milliseconds as an integer from
+	// 0 to 2000.
+	UplinkDelayMs *int64 `locationName:"uplinkDelayMs" type:"long"`
+
+	// Time variation in the delay of received packets in milliseconds as an integer
+	// from 0 to 2000.
+	UplinkJitterMs *int64 `locationName:"uplinkJitterMs" type:"long"`
+
+	// Proportion of transmitted packets that fail to arrive from 0 to 100 percent.
+	UplinkLossPercent *int64 `locationName:"uplinkLossPercent" type:"integer"`
+}
+
+// String returns the string representation
+func (s UpdateNetworkProfileInput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateNetworkProfileInput) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UpdateNetworkProfileInput) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UpdateNetworkProfileInput"}
+	if s.Arn == nil {
+		invalidParams.Add(request.NewErrParamRequired("Arn"))
+	}
+	if s.Arn != nil && len(*s.Arn) < 32 {
+		invalidParams.Add(request.NewErrParamMinLen("Arn", 32))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetArn sets the Arn field's value.
+func (s *UpdateNetworkProfileInput) SetArn(v string) *UpdateNetworkProfileInput {
+	s.Arn = &v
+	return s
+}
+
+// SetDescription sets the Description field's value.
+func (s *UpdateNetworkProfileInput) SetDescription(v string) *UpdateNetworkProfileInput {
+	s.Description = &v
+	return s
+}
+
+// SetDownlinkBandwidthBits sets the DownlinkBandwidthBits field's value.
+func (s *UpdateNetworkProfileInput) SetDownlinkBandwidthBits(v int64) *UpdateNetworkProfileInput {
+	s.DownlinkBandwidthBits = &v
+	return s
+}
+
+// SetDownlinkDelayMs sets the DownlinkDelayMs field's value.
+func (s *UpdateNetworkProfileInput) SetDownlinkDelayMs(v int64) *UpdateNetworkProfileInput {
+	s.DownlinkDelayMs = &v
+	return s
+}
+
+// SetDownlinkJitterMs sets the DownlinkJitterMs field's value.
+func (s *UpdateNetworkProfileInput) SetDownlinkJitterMs(v int64) *UpdateNetworkProfileInput {
+	s.DownlinkJitterMs = &v
+	return s
+}
+
+// SetDownlinkLossPercent sets the DownlinkLossPercent field's value.
+func (s *UpdateNetworkProfileInput) SetDownlinkLossPercent(v int64) *UpdateNetworkProfileInput {
+	s.DownlinkLossPercent = &v
+	return s
+}
+
+// SetName sets the Name field's value.
+func (s *UpdateNetworkProfileInput) SetName(v string) *UpdateNetworkProfileInput {
+	s.Name = &v
+	return s
+}
+
+// SetType sets the Type field's value.
+func (s *UpdateNetworkProfileInput) SetType(v string) *UpdateNetworkProfileInput {
+	s.Type = &v
+	return s
+}
+
+// SetUplinkBandwidthBits sets the UplinkBandwidthBits field's value.
+func (s *UpdateNetworkProfileInput) SetUplinkBandwidthBits(v int64) *UpdateNetworkProfileInput {
+	s.UplinkBandwidthBits = &v
+	return s
+}
+
+// SetUplinkDelayMs sets the UplinkDelayMs field's value.
+func (s *UpdateNetworkProfileInput) SetUplinkDelayMs(v int64) *UpdateNetworkProfileInput {
+	s.UplinkDelayMs = &v
+	return s
+}
+
+// SetUplinkJitterMs sets the UplinkJitterMs field's value.
+func (s *UpdateNetworkProfileInput) SetUplinkJitterMs(v int64) *UpdateNetworkProfileInput {
+	s.UplinkJitterMs = &v
+	return s
+}
+
+// SetUplinkLossPercent sets the UplinkLossPercent field's value.
+func (s *UpdateNetworkProfileInput) SetUplinkLossPercent(v int64) *UpdateNetworkProfileInput {
+	s.UplinkLossPercent = &v
+	return s
+}
+
+// Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/UpdateNetworkProfileResult
+type UpdateNetworkProfileOutput struct {
+	_ struct{} `type:"structure"`
+
+	// A list of the available network profiles.
+	NetworkProfile *NetworkProfile `locationName:"networkProfile" type:"structure"`
+}
+
+// String returns the string representation
+func (s UpdateNetworkProfileOutput) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UpdateNetworkProfileOutput) GoString() string {
+	return s.String()
+}
+
+// SetNetworkProfile sets the NetworkProfile field's value.
+func (s *UpdateNetworkProfileOutput) SetNetworkProfile(v *NetworkProfile) *UpdateNetworkProfileOutput {
+	s.NetworkProfile = v
+	return s
+}
+
 // Represents a request to the update project operation.
 // Please also see https://docs.aws.amazon.com/goto/WebAPI/devicefarm-2015-06-23/UpdateProjectRequest
 type UpdateProjectInput struct {
@@ -9779,6 +10930,10 @@ type UpdateProjectInput struct {
 	//
 	// Arn is a required field
 	Arn *string `locationName:"arn" min:"32" type:"string" required:"true"`
+
+	// The number of minutes a test run in the project will execute before it times
+	// out.
+	DefaultJobTimeoutMinutes *int64 `locationName:"defaultJobTimeoutMinutes" type:"integer"`
 
 	// A string representing the new name of the project that you are updating.
 	Name *string `locationName:"name" type:"string"`
@@ -9816,6 +10971,12 @@ func (s *UpdateProjectInput) SetArn(v string) *UpdateProjectInput {
 	return s
 }
 
+// SetDefaultJobTimeoutMinutes sets the DefaultJobTimeoutMinutes field's value.
+func (s *UpdateProjectInput) SetDefaultJobTimeoutMinutes(v int64) *UpdateProjectInput {
+	s.DefaultJobTimeoutMinutes = &v
+	return s
+}
+
 // SetName sets the Name field's value.
 func (s *UpdateProjectInput) SetName(v string) *UpdateProjectInput {
 	s.Name = &v
@@ -9827,8 +10988,7 @@ func (s *UpdateProjectInput) SetName(v string) *UpdateProjectInput {
 type UpdateProjectOutput struct {
 	_ struct{} `type:"structure"`
 
-	// Represents an operating-system neutral workspace for running and managing
-	// tests.
+	// The project you wish to update.
 	Project *Project `locationName:"project" type:"structure"`
 }
 
@@ -10187,6 +11347,14 @@ const (
 
 	// ExecutionStatusStopping is a ExecutionStatus enum value
 	ExecutionStatusStopping = "STOPPING"
+)
+
+const (
+	// NetworkProfileTypeCurated is a NetworkProfileType enum value
+	NetworkProfileTypeCurated = "CURATED"
+
+	// NetworkProfileTypePrivate is a NetworkProfileType enum value
+	NetworkProfileTypePrivate = "PRIVATE"
 )
 
 const (
