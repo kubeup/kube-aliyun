@@ -18,13 +18,14 @@ Features
 Docker Image
 ------------
 
-kubeup/kube-aliyun
-registry.aliyuncs.com/kubeup/kube-aliyun
+- kubeup/kube-aliyun
+- registry.aliyuncs.com/kubeup/kube-aliyun
 
 Dependency
 --------
 
 Due to Kubernetes v1.6.0 flexvolume api break, the master currently supports k8s v1.6+.
+
 To use the last v1.5.x support versionn, use the tag k8s-1.5.
 
 Components
@@ -54,9 +55,9 @@ Deploy to Aliyun
 ** If your nodes can't access Aliyun metadata somehow, you need to specify 3 more
 variables in env:
 
-  - ALIYUN_REGION
-  - ALIYUN_VPC
-  - ALIYUN_VSWITCH
+ - ALIYUN_REGION
+ - ALIYUN_VPC
+ - ALIYUN_VSWITCH
 
 ### aliyun-flexv
 
@@ -64,8 +65,8 @@ variables in env:
 2. Add to **kube-controller-manager** commandline an option `--flex-volume-plugin-dir=/opt/k8s/volume/plugins`
 3. Add two env variables to **kube-controller-manager**:
 
-    - ALIYUN_ACCESS_KEY
-    - ALIYUN_ACCESS_KEY_SECRET
+ - ALIYUN_ACCESS_KEY
+ - ALIYUN_ACCESS_KEY_SECRET
 
 4. Make flexv binary available on every node in a `./ailyun~flexv/` folder under
 the kubelet volume plugin path. Or for your convenience, run this
@@ -96,7 +97,9 @@ containers. There are several ways to do this.
 
 ### Volumes
 
-Use flexVolume in any volume spec. [example](https://github.com/kubeup/kube-aliyun/blob/master/examples/volume.yaml)
+[example](https://github.com/kubeup/kube-aliyun/blob/master/examples/volume.yaml)
+
+Use flexVolume in any volume spec. 
 
 ### Static PersistentVolumes
 
@@ -106,12 +109,12 @@ Use flexVolume in any volume spec. [example](https://github.com/kubeup/kube-aliy
 
 ### Dynamic PersistentVolumes and StorageClass
 
+[example](https://github.com/kubeup/kube-aliyun/blob/master/examples/dynamic-pv.yaml)
+
 Avaialable parameters on StorageClass:
 
   - diskCategory: Disk category as in Aliyun doc. Required.
   - fsType: Filesystem type. Default: ext4
-
-[example](https://github.com/kubeup/kube-aliyun/blob/master/examples/dynamic-pv.yaml)
 
 More Examples
 -------------
