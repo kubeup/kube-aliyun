@@ -400,6 +400,7 @@ func (p *AliyunProvider) Provision(options pvcontroller.VolumeOptions) (*v1.Pers
 	if options.PVC.Spec.StorageClassName != nil {
 		storageClassName = *options.PVC.Spec.StorageClassName
 	}
+	capacity.SetScaled(int64(size), resource.Giga)
 
 	pv := &v1.PersistentVolume{
 		ObjectMeta: metav1.ObjectMeta{
@@ -414,9 +415,7 @@ func (p *AliyunProvider) Provision(options pvcontroller.VolumeOptions) (*v1.Pers
 			StorageClassName: storageClassName,
 			PersistentVolumeSource: v1.PersistentVolumeSource{
 				FlexVolume: &v1.FlexVolumeSource{
-					Driver:   DriverName,
-					FSType:   storageOptions.FSType,
-					ReadOnly: false,
+					Driver: DriverName,
 					Options: map[string]string{
 						"diskId": diskId,
 					},

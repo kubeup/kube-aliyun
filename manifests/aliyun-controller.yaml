@@ -10,7 +10,7 @@ spec:
     image: kubeup/kube-aliyun:master
     command:
     - /aliyun-controller
-    - --master=http://127.0.0.1:8080
+    - --server=http://127.0.0.1:8080
     - --leader-elect=true
     - --cluster-cidr=YOUR_CLUSTER_CIDR
     env:
@@ -18,14 +18,10 @@ spec:
       value: YOUR_ALIYUN_ACCESS_KEY
     - name: ALIYUN_ACCESS_KEY_SECRET
       value: YOUR_ALIYUN_ACCESS_KEY_SECRET
-    - name: ALIYUN_REGION
-      value: YOUR_ALIYUN_REGION
-    - name: ALIYUN_VPC
-      value: YOUR_ALIYUN_VPC_ID
+    - name: ALIYUN_ZONE
+      value: YOUR_ALIYUN_ZONE
     - name: ALIYUN_ROUTER
       value: YOUR_ALIYUN_ROUTER_ID
     - name: ALIYUN_ROUTE_TABLE
       value: YOUR_ALIYUN_ROUTE_TABLE_ID
-    - name: ALIYUN_VSWITCH
-      value: YOUR_ALIYUN_VSWITCH_ID
 

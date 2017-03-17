@@ -1,0 +1,40 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: cloud
+provisioner: archon.kubeup.com/aliyun
+parameters:
+  diskCategory: cloud_efficiency
+
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: test-pvd-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: cloud
+  resources:
+    requests:
+      storage: 3Gi
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    volumeMounts:
+    - name: test
+      mountPath: /data
+    ports:
+    - containerPort: 80
+  volumes:
+  - name: test
+    persistentVolumeClaim:
+      claimName: test-pvd-claim
+
