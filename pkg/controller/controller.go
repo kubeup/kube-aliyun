@@ -55,6 +55,7 @@ type Controller struct {
 	sc       *service.ServiceController
 	rc       *route.RouteController
 	pvc      *pvcontroller.ProvisionController
+	shared   informers.SharedInformerFactory
 
 	done bool
 }
@@ -152,6 +153,7 @@ func NewController(options *Options) (*Controller, error) {
 		sc:       sc,
 		rc:       rc,
 		pvc:      pvc,
+		shared:   sharedInformers,
 		done:     false,
 	}, nil
 }
@@ -168,6 +170,7 @@ func (c *Controller) Run() error {
 		go c.sc.Run(done, c.Options.ConcurrentServiceSyncs)
 		go c.rc.Run(done, c.Options.RouteReconcilationPeriod.Duration)
 		go c.pvc.Run(done)
+		c.shared.Start(done)
 
 		select {
 		case <-done:
