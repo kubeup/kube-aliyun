@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/denverdino/aliyungo/common"
+	"github.com/denverdino/aliyungo/ecs"
 	"github.com/denverdino/aliyungo/slb"
 	"github.com/denverdino/aliyungo/util"
 	log "github.com/golang/glog"
@@ -117,15 +118,15 @@ func (p *AliyunProvider) EnsureLoadBalancer(clusterName string, service *api.Ser
 		return nil, fmt.Errorf("LoadBalancerIP can't be set for Aliyun load balancers")
 	}
 
-	instances, err := p.getInstanceIdsByNodes(nodes)
+	instances, err := p.getInstancesByNodes(nodes)
 	if err != nil {
 		return nil, err
 	}
 
 	log.Infof("Ensuring loadbalancer with backends %+v", nodes)
-	if len(instances) != len(nodes) {
-		log.Errorf("Unable to find some corresponding hosts in aliyun instances: %+v", instances)
-	}
+	// if len(instances) != len(nodes) {
+	// log.Errorf("Unable to find some corresponding hosts in aliyun instances: %+v", instances)
+	// }
 	// TODO: separate security groups to handle sourceRanges
 	/* sourceRanges, err := service.GetLoadBalancerSourceRanges(service.Annotations)
 	if err != nil {
@@ -335,11 +336,11 @@ func (p *AliyunProvider) ensureLBListeners(lb *slb.LoadBalancerType, ports []api
 	return nil
 }
 
-func (p *AliyunProvider) ensureLBBackends(lb *slb.LoadBalancerType, instances []string) error {
+func (p *AliyunProvider) ensureLBBackends(lb *slb.LoadBalancerType, instances []ecs.InstanceAttributesType) error {
 	actual := lb.BackendServers.BackendServer[:]
 	expected := make(map[string]bool)
 	for _, ins := range instances {
-		expected[ins] = true
+		expected[ins.InstanceId] = true
 	}
 
 	removals := []string{}
@@ -404,7 +405,7 @@ func (p *AliyunProvider) UpdateLoadBalancer(clusterName string, service *api.Ser
 		return err
 	}
 
-	instances, err := p.getInstanceIdsByNodes(nodes)
+	instances, err := p.getInstancesByNodes(nodes)
 	if err != nil {
 		return err
 	}

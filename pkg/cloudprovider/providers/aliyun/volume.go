@@ -145,16 +145,16 @@ func (p *AliyunProvider) Init() error {
 }
 
 func (p *AliyunProvider) Attach(options cloudprovider.VolumeOptions, node string) error {
-	instance := p.instance
+	instanceId := p.instance
 	if node != "" {
-		instances, err := p.getInstanceIdsByNodeNames([]string{node})
-		if len(instances) == 0 {
-			return cloudprovider.NewVolumeError("Can't get instanceId for node: %v %v", node, err)
+		instance, err := p.getInstanceByNodeName(node)
+		if err != nil {
+			return cloudprovider.NewVolumeError("Can't not get instanceId for node: %v %v", node, err)
 		}
-		instance = instances[0]
+		instanceId = instance.InstanceId
 	}
 
-	if instance == "" {
+	if instanceId == "" {
 		return cloudprovider.NewVolumeError("Failed to attach. No ALIYUN_INSTANCE is set and no node is provided.")
 	}
 
@@ -174,7 +174,7 @@ func (p *AliyunProvider) Attach(options cloudprovider.VolumeOptions, node string
 
 	region := common.Region(p.region)
 	if disk.Status == ecs.DiskStatusInUse {
-		if disk.InstanceId == instance {
+		if disk.InstanceId == instanceId {
 			return cloudprovider.VolumeError{
 				Status:     "Success",
 				DevicePath: deviceApi2Local(disk.Device),
@@ -191,7 +191,7 @@ func (p *AliyunProvider) Attach(options cloudprovider.VolumeOptions, node string
 	}
 
 	args := &ecs.AttachDiskArgs{
-		InstanceId:         instance,
+		InstanceId:         instanceId,
 		DiskId:             diskId,
 		DeleteWithInstance: deleteWithInstance,
 	}
@@ -213,17 +213,17 @@ func (p *AliyunProvider) Attach(options cloudprovider.VolumeOptions, node string
 
 // Here the deviceName is actually the volumeName from GetVolumeName. see operation-generator.go
 func (p *AliyunProvider) Detach(deviceName string, node string) error {
-	instance := p.instance
+	instanceId := p.instance
 
 	if node != "" {
-		instances, err := p.getInstanceIdsByNodeNames([]string{node})
-		if len(instances) == 0 {
+		instance, err := p.getInstanceByNodeName(node)
+		if err != nil {
 			return cloudprovider.NewVolumeError("Can't not get instanceId for node: %v %v", node, err)
 		}
-		instance = instances[0]
+		instanceId = instance.InstanceId
 	}
 
-	if instance == "" {
+	if instanceId == "" {
 		return cloudprovider.NewVolumeError("Failed to attach. No ALIYUN_INSTANCE is set and no node is provided.")
 	}
 
@@ -238,11 +238,11 @@ func (p *AliyunProvider) Detach(deviceName string, node string) error {
 		return cloudprovider.VolumeSuccess
 	}
 
-	if disk.InstanceId != instance {
+	if disk.InstanceId != instanceId {
 		return cloudprovider.VolumeSuccess
 	}
 
-	err = p.client.DetachDisk(instance, disk.DiskId)
+	err = p.client.DetachDisk(instanceId, disk.DiskId)
 	if err != nil {
 		return cloudprovider.NewVolumeError(err.Error())
 	}
@@ -335,11 +335,11 @@ func (p *AliyunProvider) IsAttached(options cloudprovider.VolumeOptions, node st
 	}
 
 	// Only do this when flexv is provided with access keys
-	instances, err := p.getInstanceIdsByNodeNames([]string{node})
-	if len(instances) == 0 {
-		return cloudprovider.NewVolumeError("Can't not get instanceId for node: %v", node, err)
+	instance, err := p.getInstanceByNodeName(node)
+	if err != nil {
+		return cloudprovider.NewVolumeError("Can't not get instanceId for node: %v %v", node, err)
 	}
-	instance := instances[0]
+	instanceId := instance.InstanceId
 
 	diskId, _ := options["diskId"].(string)
 	if diskId == "" {
@@ -352,7 +352,7 @@ func (p *AliyunProvider) IsAttached(options cloudprovider.VolumeOptions, node st
 	}
 
 	status := cloudprovider.NewVolumeSuccess()
-	status.Attached = disk.InstanceId == instance && disk.Status == ecs.DiskStatusInUse
+	status.Attached = disk.InstanceId == instanceId && disk.Status == ecs.DiskStatusInUse
 
 	return status
 }

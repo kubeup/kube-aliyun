@@ -26,16 +26,8 @@ import (
 	origcloudprovider "k8s.io/kubernetes/pkg/cloudprovider"
 )
 
-func nodeName2IP(s types.NodeName) string {
-	return string(s)
-}
-
-func ip2NodeName(s string) types.NodeName {
-	return types.NodeName(s)
-}
-
 func (w *AliyunProvider) ListRoutes(clusterName string) (routes []*origcloudprovider.Route, err error) {
-	id2ip, err := w.getInstanceID2IP()
+	instances, err := w.getInstances()
 	if err != nil {
 		return
 	}
@@ -60,15 +52,20 @@ func (w *AliyunProvider) ListRoutes(clusterName string) (routes []*origcloudprov
 				continue
 			}
 
-			ip, ok := id2ip[r.InstanceId]
-			if !ok {
-				log.Warningf("Unable to get ip of instance: %+v", r)
-				log.Warningf("%+v", id2ip)
+			f := filter(instances, byInstanceId(r.InstanceId))
+
+			if len(f) == 0 {
+				log.Warningf("Unable to get ip of instance: %+v", f)
+				continue
+			}
+
+			if len(f) > 1 {
+				log.Warningf("Multiple instance with the same id: %+v", f)
 				continue
 			}
 
 			routes = append(routes, &origcloudprovider.Route{
-				TargetNode:      ip2NodeName(ip),
+				TargetNode:      types.NodeName(w.mapInstanceToNodeName(f[0])),
 				DestinationCIDR: r.DestinationCidrBlock,
 			})
 		}
@@ -78,62 +75,40 @@ func (w *AliyunProvider) ListRoutes(clusterName string) (routes []*origcloudprov
 }
 
 func (w *AliyunProvider) DeleteRoute(clusterName string, route *origcloudprovider.Route) (err error) {
-	ip2id, err := w.getInstanceIP2ID()
+	i, err := w.getInstanceByNodeName(string(route.TargetNode))
 	if err != nil {
-		return
-	}
-
-	var (
-		instanceId string
-		ok         bool
-	)
-
-	ip := nodeName2IP(route.TargetNode)
-	if instanceId, ok = ip2id[ip]; !ok {
-		err = errors.New("Unable to get instance id of node:" + ip)
 		return
 	}
 
 	args := &ecs.DeleteRouteEntryArgs{
 		RouteTableId:         w.routeTable,
 		DestinationCidrBlock: route.DestinationCIDR,
-		NextHopId:            instanceId,
+		NextHopId:            i.InstanceId,
 	}
 
 	err = w.client.DeleteRouteEntry(args)
 	if err != nil {
-		log.Warningf("Unable to remove vpc route for %s (subnet: %s): %+v", instanceId, route.DestinationCIDR, err)
+		log.Warningf("Unable to remove vpc route for %s (subnet: %s): %+v", i.InstanceId, route.DestinationCIDR, err)
 	}
 
 	return
 }
 
 func (w *AliyunProvider) CreateRoute(clusterName string, nameHint string, route *origcloudprovider.Route) (err error) {
-	ip2id, err := w.getInstanceIP2ID()
+	i, err := w.getInstanceByNodeName(string(route.TargetNode))
 	if err != nil {
-		return
-	}
-
-	var (
-		instanceId string
-		ok         bool
-	)
-
-	ip := nodeName2IP(route.TargetNode)
-	if instanceId, ok = ip2id[ip]; !ok {
-		err = errors.New("Unable to get instance id of node:" + ip)
 		return
 	}
 
 	args := &ecs.CreateRouteEntryArgs{
 		RouteTableId:         w.routeTable,
 		DestinationCidrBlock: route.DestinationCIDR,
-		NextHopId:            instanceId,
+		NextHopId:            i.InstanceId,
 	}
 
 	err = w.client.CreateRouteEntry(args)
 	if err != nil {
-		log.Warningf("Unable to add vpc route for %s (subnet: %s): %+v", instanceId, route.DestinationCIDR, err)
+		log.Warningf("Unable to add vpc route for %s (subnet: %s): %+v", i.InstanceId, route.DestinationCIDR, err)
 	}
 	return
 }

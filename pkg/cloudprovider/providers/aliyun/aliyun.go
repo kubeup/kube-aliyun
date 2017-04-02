@@ -17,6 +17,11 @@ limitations under the License.
 package aliyun
 
 import (
+	"errors"
+	"net/http"
+	"os"
+	"time"
+
 	"github.com/denverdino/aliyungo/common"
 	"github.com/denverdino/aliyungo/ecs"
 	"github.com/denverdino/aliyungo/metadata"
@@ -25,9 +30,6 @@ import (
 	api "k8s.io/kubernetes/pkg/api/v1"
 	origcloudprovider "k8s.io/kubernetes/pkg/cloudprovider"
 	"kubeup.com/kube-aliyun/pkg/cloudprovider"
-	"net/http"
-	"os"
-	"time"
 )
 
 const (
@@ -47,11 +49,22 @@ type AliyunProvider struct {
 	loadbalancer    string
 	instance        string
 	hostname        string
+	nodeNameType    NodeNameType
 
 	client    *ecs.Client
 	slbClient *slb.Client
 	meta      *metadata.MetaData
 }
+
+// NodeName describes the format of name for nodes in the cluster
+type NodeNameType string
+
+const (
+	// Use private ip address as the node name
+	NodeNameTypePrivateIP NodeNameType = "private-ip"
+	// Use hostname as the node name. This is the default behavior for k8s
+	NodeNameTypeHostname NodeNameType = "hostname"
+)
 
 var _ origcloudprovider.Interface = &AliyunProvider{}
 
@@ -63,6 +76,16 @@ func NewProvider() cloudprovider.Provider {
 	accessKey := os.Getenv("ALIYUN_ACCESS_KEY")
 	accessKeySecret := os.Getenv("ALIYUN_ACCESS_KEY_SECRET")
 	debug := os.Getenv("ALIYUN_DEBUG")
+	var nodeNameType NodeNameType
+	switch NodeNameType(os.Getenv("ALIYUN_NODE_NAME_TYPE")) {
+	case NodeNameTypePrivateIP:
+		nodeNameType = NodeNameTypePrivateIP
+	case NodeNameTypeHostname:
+		nodeNameType = NodeNameTypeHostname
+	default:
+		// Default to NodeNameTypePrivateIP for backward compatibility
+		nodeNameType = NodeNameTypePrivateIP
+	}
 	hostname, _ := os.Hostname()
 	httpClient := &http.Client{
 		Timeout: time.Duration(3) * time.Second,
@@ -82,6 +105,7 @@ func NewProvider() cloudprovider.Provider {
 		accessKey:       accessKey,
 		accessKeySecret: accessKeySecret,
 		hostname:        hostname,
+		nodeNameType:    nodeNameType,
 	}
 
 	if debug == "true" {
@@ -133,89 +157,13 @@ func (w *AliyunProvider) isLocal(node string) bool {
 	return node == "localhost" || node == w.hostname
 }
 
-func (w *AliyunProvider) getInstanceIP2ID() (ip2id map[string]string, err error) {
-	args2 := &ecs.DescribeInstancesArgs{
-		RegionId: common.Region(w.region),
-		VpcId:    w.vpcID,
-	}
-	results2, _, err := w.client.DescribeInstances(args2)
-	if err != nil {
-		return
-	}
-
-	ip2id = make(map[string]string)
-	for _, instance := range results2 {
-		if len(instance.VpcAttributes.PrivateIpAddress.IpAddress) > 0 {
-			ip2id[instance.VpcAttributes.PrivateIpAddress.IpAddress[0]] = instance.InstanceId
-		}
-	}
-	return
-}
-
-func (w *AliyunProvider) getInstanceID2IP() (id2ip map[string]string, err error) {
-	args2 := &ecs.DescribeInstancesArgs{
-		RegionId: common.Region(w.region),
-		VpcId:    w.vpcID,
-	}
-	results2, _, err := w.client.DescribeInstances(args2)
-	if err != nil {
-		return
-	}
-
-	id2ip = make(map[string]string)
-	for _, instance := range results2 {
-		if len(instance.VpcAttributes.PrivateIpAddress.IpAddress) > 0 {
-			id2ip[instance.InstanceId] = instance.VpcAttributes.PrivateIpAddress.IpAddress[0]
-		}
-	}
-	return
-}
-
-func (p *AliyunProvider) getInstanceIdsByNodeNames(nodes []string) (instances []string, err error) {
+func (w *AliyunProvider) getInstances() (instances []ecs.InstanceAttributesType, err error) {
 	args := &ecs.DescribeInstancesArgs{
-		RegionId: common.Region(p.region),
-		VpcId:    p.vpcID,
+		RegionId: common.Region(w.region),
+		VpcId:    w.vpcID,
 	}
-	results, _, err := p.client.DescribeInstances(args)
-	if err != nil {
-		return
-	}
-
-	// Match hostnames and all ip addresses
-	instanceMap := make(map[string]string)
-	for _, i := range results {
-		id := i.InstanceId
-		instanceMap[i.HostName] = id
-
-		for _, ip := range i.VpcAttributes.PrivateIpAddress.IpAddress {
-			instanceMap[ip] = id
-		}
-
-		for _, ip := range i.PublicIpAddress.IpAddress {
-			instanceMap[ip] = id
-		}
-
-		if i.EipAddress.IpAddress != "" {
-			instanceMap[i.EipAddress.IpAddress] = id
-		}
-	}
-
-	for _, node := range nodes {
-		if id, ok := instanceMap[node]; ok {
-			instances = append(instances, id)
-		}
-	}
-
+	instances, _, err = w.client.DescribeInstances(args)
 	return
-}
-
-func (p *AliyunProvider) getInstanceIdsByNodes(nodes []*api.Node) (instances []string, err error) {
-	names := []string{}
-	for _, node := range nodes {
-		names = append(names, node.Name)
-	}
-
-	return p.getInstanceIdsByNodeNames(names)
 }
 
 func (p *AliyunProvider) Clusters() (origcloudprovider.Clusters, bool) {
@@ -248,4 +196,121 @@ func (p *AliyunProvider) Volume() (cloudprovider.Volume, bool) {
 
 func (p *AliyunProvider) ScrubDNS(nameservers, searches []string) (nsOut, srchOut []string) {
 	return
+}
+
+func (p *AliyunProvider) mapInstanceToNodeName(instance ecs.InstanceAttributesType) string {
+	switch p.nodeNameType {
+	case NodeNameTypePrivateIP:
+		return instance.VpcAttributes.PrivateIpAddress.IpAddress[0]
+	case NodeNameTypeHostname:
+		return instance.HostName
+	}
+	return instance.HostName
+}
+
+func (p *AliyunProvider) getInstanceByNodeName(nodeName string) (instance ecs.InstanceAttributesType, err error) {
+	instances, err := p.getInstances()
+	if err != nil {
+		return
+	}
+
+	switch p.nodeNameType {
+	case NodeNameTypePrivateIP:
+		instances = filter(instances, byPrivateIP(nodeName))
+	case NodeNameTypeHostname:
+		instances = filter(instances, byHostname(nodeName))
+	default:
+		instances = []ecs.InstanceAttributesType{}
+	}
+
+	if len(instances) == 0 {
+		err = errors.New("Unable to get instance of node:" + nodeName)
+		return
+	}
+
+	if len(instances) > 1 {
+		err = errors.New("Multiple instance with the same node name:" + nodeName)
+		return
+	}
+
+	return instances[0], nil
+}
+
+func (p *AliyunProvider) getInstancesByNodeNames(nodeNames []string) (results []ecs.InstanceAttributesType, err error) {
+	instances, err := p.getInstances()
+	if err != nil {
+		return
+	}
+
+	var by func(string) func(ecs.InstanceAttributesType) bool
+	switch p.nodeNameType {
+	case NodeNameTypePrivateIP:
+		by = byPrivateIP
+	case NodeNameTypeHostname:
+		by = byHostname
+	default:
+		by = byEmpty
+	}
+
+	for _, nodeName := range nodeNames {
+		instances = filter(instances, by(nodeName))
+
+		if len(instances) == 0 {
+			return nil, errors.New("Unable to get instance of node:" + nodeName)
+		}
+
+		if len(instances) > 1 {
+			return nil, errors.New("Multiple instance with the same node name:" + nodeName)
+		}
+		results = append(results, instances[0])
+	}
+
+	return
+}
+
+func (p *AliyunProvider) getInstancesByNodes(nodes []*api.Node) (results []ecs.InstanceAttributesType, err error) {
+	var nodeNames []string
+
+	for _, n := range nodes {
+		nodeNames = append(nodeNames, n.Name)
+	}
+	return p.getInstancesByNodeNames(nodeNames)
+}
+
+func filter(instances []ecs.InstanceAttributesType, f func(ecs.InstanceAttributesType) bool) (ret []ecs.InstanceAttributesType) {
+	for _, i := range instances {
+		if f(i) {
+			ret = append(ret, i)
+		}
+	}
+	return
+}
+
+func byHostname(hostname string) func(ecs.InstanceAttributesType) bool {
+	return func(i ecs.InstanceAttributesType) bool {
+		return i.HostName == hostname
+	}
+}
+
+func byPrivateIP(ip string) func(ecs.InstanceAttributesType) bool {
+	return func(i ecs.InstanceAttributesType) bool {
+		for _, s := range i.VpcAttributes.PrivateIpAddress.IpAddress {
+			if s == ip {
+				return true
+			}
+		}
+		return false
+	}
+}
+
+func byInstanceId(id string) func(ecs.InstanceAttributesType) bool {
+	return func(i ecs.InstanceAttributesType) bool {
+		return i.InstanceId == id
+	}
+}
+
+func byEmpty(string) func(ecs.InstanceAttributesType) bool {
+	return func(ecs.InstanceAttributesType) bool {
+		return false
+	}
 }
