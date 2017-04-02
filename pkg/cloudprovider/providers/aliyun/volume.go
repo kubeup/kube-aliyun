@@ -168,10 +168,25 @@ func (p *AliyunProvider) Attach(options cloudprovider.VolumeOptions, node string
 
 	// Check if already attached
 	disk, err := p.getDiskById(diskId)
-	if err == nil && disk.InstanceId == instance && disk.DiskId == diskId && disk.Status == ecs.DiskStatusInUse {
-		return cloudprovider.VolumeError{
-			Status:     "Success",
-			DevicePath: deviceApi2Local(disk.Device),
+	if err != nil {
+		return cloudprovider.NewVolumeError("Unable to get disk. %v", err)
+	}
+
+	region := common.Region(p.region)
+	if disk.Status == ecs.DiskStatusInUse {
+		if disk.InstanceId == instance {
+			return cloudprovider.VolumeError{
+				Status:     "Success",
+				DevicePath: deviceApi2Local(disk.Device),
+			}
+		} else {
+			// Have to detach here
+			err = p.client.DetachDisk(disk.InstanceId, diskId)
+			if err != nil {
+				return cloudprovider.NewVolumeError("Unable to attach disk: need to detach first but failed: %v", err)
+			}
+
+			p.client.WaitForDisk(region, diskId, ecs.DiskStatusAvailable, 0)
 		}
 	}
 
@@ -184,7 +199,6 @@ func (p *AliyunProvider) Attach(options cloudprovider.VolumeOptions, node string
 	if err != nil {
 		return cloudprovider.NewVolumeError(err.Error())
 	}
-	region := common.Region(p.region)
 	p.client.WaitForDisk(region, diskId, ecs.DiskStatusInUse, 0)
 
 	disk, err = p.getDiskById(diskId)
