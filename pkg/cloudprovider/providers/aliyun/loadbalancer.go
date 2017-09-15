@@ -30,6 +30,19 @@ import (
 	autil "kubeup.com/kube-aliyun/pkg/util"
 )
 
+/*
+https://kubernetes.io/docs/concepts/services-networking/service/
+
+Example:
+---
+apiVersion: v1
+kind: Service
+metadata:
+	annotations:
+		aliyun.archon.kubeup.com/bandwidth: "1"
+		aliyun.archon.kubeup.com/load-balancer-backend-protocol: "http"
+		aliyun.archon.kubeup.com/load-balancer-health-check: "true"
+*/
 type AliyunLoadBalancerOptions struct {
 	InternetChargeType        string `k8s:"internet-charge-type"`
 	Bandwidth                 int    `k8s:"bandwidth"`
@@ -37,6 +50,10 @@ type AliyunLoadBalancerOptions struct {
 	UnhealthyThreshold        int    `k8s:"unhealthy-threshold"`
 	HealthCheckConnectTimeout int    `k8s:"health-check-connect-timeout"`
 	HealthCheckInterval       int    `k8s:"health-check-interval"`
+	BackendProtocol           string `k8s:"load-balancer-backend-protocol"`
+	HealthCheck			  	  bool	 `k8s:"load-balancer-http-health-check"`
+	HealthCheckURI			  string `k8s:"load-balancer-http-health-check-uri"`
+	HealthCheckTimeout		  int    `k8s:"load-balancer-http-health-check-timeout"`
 }
 
 // Loadbalancer helpers
@@ -290,19 +307,53 @@ func (p *AliyunProvider) ensureLBListeners(lb *slb.LoadBalancerType, ports []api
 			var err error
 			switch sp.Protocol {
 			case api.ProtocolTCP:
-				args := &slb.CreateLoadBalancerTCPListenerArgs{
-					LoadBalancerId:            lb.LoadBalancerId,
-					ListenerPort:              int(sp.Port),
-					BackendServerPort:         int(sp.NodePort),
-					Bandwidth:                 options.Bandwidth,
-					HealthCheckType:           slb.TCPHealthCheckType,
-					HealthCheckConnectPort:    int(sp.NodePort),
-					HealthyThreshold:          options.HealthyThreshold,
-					UnhealthyThreshold:        options.UnhealthyThreshold,
-					HealthCheckConnectTimeout: options.HealthCheckConnectTimeout,
-					HealthCheckInterval:       options.HealthCheckInterval,
+				if "HTTP" != strings.ToUpper(options.BackendProtocol) {
+					args := &slb.CreateLoadBalancerTCPListenerArgs{
+						LoadBalancerId:            lb.LoadBalancerId,
+						ListenerPort:              int(sp.Port),
+						BackendServerPort:         int(sp.NodePort),
+						Bandwidth:                 options.Bandwidth,
+						HealthCheckType:           slb.TCPHealthCheckType,
+						HealthCheckConnectPort:    int(sp.NodePort),
+						HealthyThreshold:          options.HealthyThreshold,
+						UnhealthyThreshold:        options.UnhealthyThreshold,
+						HealthCheckConnectTimeout: options.HealthCheckConnectTimeout,
+						HealthCheckInterval:       options.HealthCheckInterval,
+					}
+					err = p.slbClient.CreateLoadBalancerTCPListener(args)
+				} else {
+					// https://help.aliyun.com/document_detail/27592.html?spm=5176.doc27637.6.646.7Me9In
+					args := &slb.CreateLoadBalancerHTTPListenerArgs{
+						LoadBalancerId:    lb.LoadBalancerId,
+						ListenerPort:      int(sp.Port),
+						BackendServerPort: int(sp.NodePort),
+						Bandwidth:         options.Bandwidth,
+						StickySession:	   slb.OffFlag,
+					}
+
+					// Check value of "aliyun.archon.kubeup.com/load-balancer-http-health-check"
+					if true == options.HealthCheck {
+						args.HealthCheck = slb.OnFlag
+						args.HealthCheckConnectPort = int(sp.NodePort)
+						args.HealthCheckHttpCode = "http_2xx,http_3xx,http_4xx"
+
+						// Check existence of mandatory values and setup default values
+						if 0 == len(options.HealthCheckURI)       { options.HealthCheckURI = "/"    }
+						if 0 == options.HealthCheckConnectTimeout { options.HealthCheckTimeout = 3  }
+						if 0 == options.HealthCheckInterval       { options.HealthCheckInterval = 5 }
+						if 0 == options.HealthyThreshold          { options.HealthyThreshold = 4    }
+						if 0 == options.UnhealthyThreshold        { options.UnhealthyThreshold = 4  }
+
+						args.HealthCheckURI = options.HealthCheckURI
+						args.HealthCheckTimeout = options.HealthCheckTimeout
+						args.HealthCheckInterval = options.HealthCheckInterval
+						args.HealthyThreshold = options.HealthyThreshold
+						args.UnhealthyThreshold = options.UnhealthyThreshold
+					} else {
+						args.HealthCheck = slb.OffFlag
+					}
+					err = p.slbClient.CreateLoadBalancerHTTPListener(args)
 				}
-				err = p.slbClient.CreateLoadBalancerTCPListener(args)
 			case api.ProtocolUDP:
 				args := &slb.CreateLoadBalancerUDPListenerArgs{
 					LoadBalancerId:            lb.LoadBalancerId,
@@ -316,6 +367,7 @@ func (p *AliyunProvider) ensureLBListeners(lb *slb.LoadBalancerType, ports []api
 					HealthCheckInterval:       options.HealthCheckInterval,
 				}
 				err = p.slbClient.CreateLoadBalancerUDPListener(args)
+
 			default:
 				err = fmt.Errorf("Error creating service listener. Unsupported listener protocol: %s", string(sp.Protocol))
 			}
